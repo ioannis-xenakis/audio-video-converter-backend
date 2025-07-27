@@ -8,8 +8,8 @@
 		<version>3.5.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.john_xenakis</groupId>
-	<artifactId>audio_video_converter_backend</artifactId>
+	<groupId>com.johnxenakis</groupId>
+	<artifactId>converter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging> <!-- Required for multi-module parent -->
 	<name>audio_video_converter_backend</name>
