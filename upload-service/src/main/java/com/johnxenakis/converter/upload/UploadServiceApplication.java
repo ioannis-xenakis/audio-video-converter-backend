@@ -1,4 +1,4 @@
-package com.john_xenakis.audio_video_converter_backend;
+package com.johnxenakis.converter.upload;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

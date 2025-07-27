@@ -1,6 +1,6 @@
-package com.john_xenakis.audio_video_converter_backend.controller;
+package com.johnxenakis.converter.upload.controller;
 
-import com.john_xenakis.audio_video_converter_backend.service.FileStorageService;
+import com.johnxenakis.converter.upload.service.FileStorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

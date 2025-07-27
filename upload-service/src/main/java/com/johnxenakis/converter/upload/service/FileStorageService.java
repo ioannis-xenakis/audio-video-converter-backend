@@ -1,4 +1,4 @@
-package com.john_xenakis.audio_video_converter_backend.service;
+package com.johnxenakis.converter.upload.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
