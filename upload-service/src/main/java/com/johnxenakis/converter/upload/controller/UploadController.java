@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/upload")
 public class UploadController {
@@ -18,5 +20,15 @@ public class UploadController {
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file){
         String fileId = storageService.store(file);
         return ResponseEntity.ok(fileId);
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<String>> uploadMultipleFiles(@RequestParam("files") List<MultipartFile> files) {
+        List<String> fileIds = files
+                .stream()
+                .map(storageService::store)
+                .toList();
+
+        return ResponseEntity.ok(fileIds);
     }
 }
