@@ -1,6 +1,7 @@
 package com.johnxenakis.converter.upload.service;
 
 import com.johnxenakis.converter.upload.config.UploadProperties;
+import com.johnxenakis.converter.upload.exception.FileValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
