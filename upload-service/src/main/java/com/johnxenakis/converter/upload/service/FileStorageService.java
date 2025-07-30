@@ -14,8 +14,6 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
-    @Value("${upload.dir}")
-    private String uploadDir;
     private final UploadProperties properties;
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
@@ -41,7 +39,7 @@ public class FileStorageService {
         }
 
         try {
-            Path uploadPath = Paths.get(uploadDir);
+            Path uploadPath = Paths.get(properties.getDir());
             Files.createDirectories(uploadPath);
 
             String fileId = UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
