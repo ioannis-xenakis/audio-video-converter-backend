@@ -9,8 +9,12 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "upload")
 public class UploadProperties {
+    private String dir;
     private String allowedExtensions;
     private String allowedMimetypes;
+
+    public String getDir() { return dir; }
+    public void setDir(String dir) { this.dir = dir; }
 
     public List<String> getAllowedExtensions() {
         return Arrays.asList(allowedExtensions.split(","));
