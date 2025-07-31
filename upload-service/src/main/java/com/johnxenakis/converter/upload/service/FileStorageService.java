@@ -28,13 +28,13 @@ public class FileStorageService {
         // Validate extension
         if(!properties.getAllowedExtensions().contains(ext)) {
             logger.warn("Rejected file: {} with unsupported extension: {} ", fileName, ext);
-            throw new FileValidationException("Unsupported file extension: " + ext);
+            throw new FileValidationException(fileName, "Unsupported file extension: " + ext);
         }
 
         // Validate MIME type
         if(!properties.getAllowedMimetypes().contains(mimeType)) {
             logger.warn("Rejected file: {} with unsupported MIME type: {} ", fileName, mimeType);
-            throw new FileValidationException("Unsupported MIME type: " + mimeType);
+            throw new FileValidationException(fileName, "Unsupported MIME type: " + mimeType);
         }
 
         try {
