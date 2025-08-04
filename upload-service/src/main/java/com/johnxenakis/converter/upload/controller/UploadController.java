@@ -21,9 +21,18 @@ public class UploadController {
     }
 
     @PostMapping
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file){
-        String fileId = storageService.store(file);
-        return ResponseEntity.ok(fileId);
+    public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file){
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            response.put("uploaded", storageService.store(file));
+        } catch (FileValidationException e) {
+            Map<String, Object> failedDetails = new HashMap<>();
+            failedDetails.put("fileName", e.getFileName());
+            failedDetails.put("reason", e.getReason());
+            response.put("failed", failedDetails);
+        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/batch")
