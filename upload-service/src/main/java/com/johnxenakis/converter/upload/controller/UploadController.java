@@ -26,14 +26,17 @@ public class UploadController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file){
         Map<String, Object> response = new HashMap<>();
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         try {
             response.put("uploaded", storageService.store(file));
+            response.put("timestamp", timestamp);
         } catch (FileValidationException e) {
             Map<String, Object> failedDetails = new HashMap<>();
             failedDetails.put("fileName", e.getFileName());
             failedDetails.put("reason", e.getReason());
             response.put("failed", failedDetails);
+            response.put("timestamp", timestamp);
         }
         return ResponseEntity.ok(response);
     }
