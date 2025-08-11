@@ -6,11 +6,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class UploadExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(UploadExceptionHandler.class);
+
     @ExceptionHandler(FileValidationException.class)
     public ResponseEntity<Map<String, String>> handleFileValidation(FileValidationException ex) {
         Map<String, String> errorResponse = new HashMap<>();
@@ -21,6 +26,7 @@ public class UploadExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, String>> handleMaxSizeExceeded(MaxUploadSizeExceededException ex) {
+        logger.error("Upload failed. File size exceeded the 200MB limit.");
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("error", "File is too large");
         errorResponse.put("message", "File cannot exceed file size more than 200MB");
