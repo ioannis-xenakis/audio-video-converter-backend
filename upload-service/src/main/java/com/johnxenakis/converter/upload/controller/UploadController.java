@@ -6,6 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +42,7 @@ public class UploadController {
     public ResponseEntity<Map<String, Object>> uploadMultipleFiles(@RequestParam("files") List<MultipartFile> files) {
         List<String> uploadedFileIds = new ArrayList<>();
         List<Map<String, String>> failedFiles = new ArrayList<>();
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         for (MultipartFile file : files) {
             try {
@@ -54,6 +58,7 @@ public class UploadController {
         Map<String, Object> response = new HashMap<>();
         response.put("uploaded", uploadedFileIds);
         response.put("failed", failedFiles);
+        response.put("timestamp", timestamp);
 
         return ResponseEntity.ok(response);
     }
