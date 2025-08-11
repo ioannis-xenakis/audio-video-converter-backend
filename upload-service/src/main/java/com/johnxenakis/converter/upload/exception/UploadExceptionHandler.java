@@ -26,7 +26,7 @@ public class UploadExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, String>> handleMaxSizeExceeded(MaxUploadSizeExceededException ex) {
-        logger.error("Upload failed. File size exceeded the 200MB limit.");
+        logger.error("Upload failed. File size exceeded the 200MB limit.", ex);
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("error", "File is too large");
         errorResponse.put("message", "File cannot exceed file size more than 200MB");
