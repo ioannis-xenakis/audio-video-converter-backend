@@ -9,7 +9,6 @@
 	</parent>
 
 	<artifactId>conversion-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>Conversion Service</name>
 	<description>Converts file types of files to different file types</description>
 
