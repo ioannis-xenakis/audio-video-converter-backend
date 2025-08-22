@@ -16,6 +16,7 @@
 	<description>Audio video file converter</description>
 	<modules>
 		<module>upload-service</module>
+		<module>conversion-service</module>
 	</modules>
 	<url/>
 	<licenses>
