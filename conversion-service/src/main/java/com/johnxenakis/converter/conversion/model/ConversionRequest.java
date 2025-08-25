@@ -1,4 +1,4 @@
-package com.johnxenakis.converter.conversion.request;
+package com.johnxenakis.converter.conversion.model;
 
 public class ConversionRequest {
     private String inputPath;
