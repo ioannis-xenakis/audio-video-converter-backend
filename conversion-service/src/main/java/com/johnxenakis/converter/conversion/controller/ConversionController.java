@@ -1,5 +1,6 @@
 package com.johnxenakis.converter.conversion.controller;
 
+import com.johnxenakis.converter.conversion.request.ConversionRequest;
 import com.johnxenakis.converter.conversion.service.MediaConversionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
