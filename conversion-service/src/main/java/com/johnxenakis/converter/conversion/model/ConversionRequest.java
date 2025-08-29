@@ -1,21 +1,21 @@
 package com.johnxenakis.converter.conversion.model;
 
+import java.util.Map;
+
 public class ConversionRequest {
     private String inputPath;
     private String outputPath;
     private String format;
-    private String audioCodec;
-    private String videoCodec;
+    private Map<String, String> codecs;
 
     public ConversionRequest() {
     }
 
-    public ConversionRequest(String inputPath, String outputPath, String format, String audioCodec, String videoCodec) {
+    public ConversionRequest(String inputPath, String outputPath, String format, Map<String, String> codecs) {
         this.inputPath = inputPath;
         this.outputPath = outputPath;
         this.format = format;
-        this.audioCodec = audioCodec;
-        this.videoCodec = videoCodec;
+        this.codecs = codecs;
     }
 
     public String getInputPath() {
@@ -42,19 +42,11 @@ public class ConversionRequest {
         this.format = format;
     }
 
-    public String getAudioCodec() {
-        return audioCodec;
+    public Map<String, String> getCodecs() {
+        return codecs;
     }
 
-    public void setAudioCodec(String audioCodec) {
-        this.audioCodec = audioCodec;
-    }
-
-    public String getVideoCodec() {
-        return videoCodec;
-    }
-
-    public void setVideoCodec(String videoCodec) {
-        this.videoCodec = videoCodec;
+    public void setCodecs(Map<String, String> codecs) {
+        this.codecs = codecs;
     }
 }
