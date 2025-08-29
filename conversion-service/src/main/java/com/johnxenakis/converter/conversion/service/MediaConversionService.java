@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class MediaConversionService {
@@ -35,6 +36,10 @@ public class MediaConversionService {
         // Add extra arguments.
         if (arguments != null && !arguments.isEmpty()) {
             arguments.forEach(urlOutput::addArguments);
+        }
+
+        if (Objects.equals(outputFormat, "wmv")) {
+            outputFormat = "asf";
         }
 
         FFmpeg.atPath(ffmpegExecutable.getParent())
