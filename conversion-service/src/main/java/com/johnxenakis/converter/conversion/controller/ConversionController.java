@@ -22,7 +22,13 @@ public class ConversionController {
     public ResponseEntity<String> convert(@RequestBody ConversionRequest request) {
         Path input = Paths.get(request.getInputPath());
         Path output = Paths.get(request.getOutputPath());
-        conversionService.convertMedia(input, output, request.getFormat());
+        conversionService.convertMedia(
+                input,
+                output,
+                request.getFormat(),
+                request.getCodecs(),
+                request.getArguments()
+        );
         return ResponseEntity.ok("Conversion Started");
     }
 }
