@@ -7,15 +7,18 @@ public class ConversionRequest {
     private String outputPath;
     private String format;
     private Map<String, String> codecs;
+    private Map<String, String> arguments;
 
     public ConversionRequest() {
     }
 
-    public ConversionRequest(String inputPath, String outputPath, String format, Map<String, String> codecs) {
+    public ConversionRequest(String inputPath, String outputPath, String format,
+                             Map<String, String> codecs, Map<String, String> arguments) {
         this.inputPath = inputPath;
         this.outputPath = outputPath;
         this.format = format;
         this.codecs = codecs;
+        this.arguments = arguments;
     }
 
     public String getInputPath() {
@@ -48,5 +51,13 @@ public class ConversionRequest {
 
     public void setCodecs(Map<String, String> codecs) {
         this.codecs = codecs;
+    }
+
+    public Map<String, String> getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(Map<String, String> arguments) {
+        this.arguments = arguments;
     }
 }
