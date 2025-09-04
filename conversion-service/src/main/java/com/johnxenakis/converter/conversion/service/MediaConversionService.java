@@ -1,13 +1,14 @@
 package com.johnxenakis.converter.conversion.service;
 
 import com.github.kokorin.jaffree.StreamType;
-import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
-import com.github.kokorin.jaffree.ffmpeg.UrlInput;
-import com.github.kokorin.jaffree.ffmpeg.UrlOutput;
+import com.github.kokorin.jaffree.ffmpeg.*;
 import com.johnxenakis.converter.conversion.config.FFmpegConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -17,35 +18,35 @@ public class MediaConversionService {
     @Autowired
     private FFmpegConfig ffmpegConfig;
 
-    public void convertMedia(Path inputPath, Path outputPath, String outputFormat,
+    public void convertMedia(InputStream inputStream, OutputStream outputStream, String outputFormat,
                              Map<String, String> codecs, Map<String, String> arguments) {
         Path ffmpegExecutable = ffmpegConfig.getFFmpegPath().resolve("ffmpeg.exe");
-        UrlOutput urlOutput = UrlOutput.toPath(outputPath);
+
+        if (Objects.equals(outputFormat, "wmv")) {
+            outputFormat = "asf";
+        }
+
+        FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
+                .addInput(PipeInput.pumpFrom(inputStream))
+                .addOutput(PipeOutput.pumpTo(outputStream).setFormat(outputFormat));
 
         // Video and audio codec names.
         String videoCodec = resolveVideoCodec(outputFormat, codecs);
         String audioCodec = resolveAudioCodec(outputFormat, codecs);
 
         if (videoCodec != null) {
-            urlOutput.setCodec(StreamType.VIDEO, videoCodec);
+            ffmpeg.addArguments("-c:v", videoCodec);
         }
         if (audioCodec != null) {
-            urlOutput.setCodec(StreamType.AUDIO, audioCodec);
+            ffmpeg.addArguments("-c:a", audioCodec);
         }
 
         // Add extra arguments.
         if (arguments != null && !arguments.isEmpty()) {
-            arguments.forEach(urlOutput::addArguments);
+            arguments.forEach(ffmpeg::addArguments);
         }
 
-        if (Objects.equals(outputFormat, "wmv")) {
-            outputFormat = "asf";
-        }
-
-        FFmpeg.atPath(ffmpegExecutable.getParent())
-                .addInput(UrlInput.fromPath(inputPath))
-                .addOutput(urlOutput.setFormat(outputFormat))
-                .execute();
+        ffmpeg.execute();
     }
 
     private String resolveVideoCodec(String format, Map<String, String> codecs) {
