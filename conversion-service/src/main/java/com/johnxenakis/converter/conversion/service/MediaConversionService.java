@@ -1,14 +1,18 @@
 package com.johnxenakis.converter.conversion.service;
 
-import com.github.kokorin.jaffree.StreamType;
-import com.github.kokorin.jaffree.ffmpeg.*;
+import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
+import com.github.kokorin.jaffree.ffmpeg.Output;
+import com.github.kokorin.jaffree.ffmpeg.PipeInput;
+import com.github.kokorin.jaffree.ffprobe.FFprobe;
+import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
+import com.github.kokorin.jaffree.ffprobe.Stream;
 import com.johnxenakis.converter.conversion.config.FFmpegConfig;
+import com.johnxenakis.converter.conversion.util.SmartOutputStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -18,17 +22,44 @@ public class MediaConversionService {
     @Autowired
     private FFmpegConfig ffmpegConfig;
 
-    public void convertMedia(InputStream inputStream, OutputStream outputStream, String outputFormat,
+    public void convertMedia(long estimatedSize, InputStream inputStream, OutputStream outputStream, String outputFormat,
                              Map<String, String> codecs, Map<String, String> arguments) {
         Path ffmpegExecutable = ffmpegConfig.getFFmpegPath().resolve("ffmpeg.exe");
+        Path ffprobeExecutable = ffmpegConfig.getFFmpegPath().resolve("ffprobe.exe");
+        double durationSeconds = 0;
+        long bitrateKbps = 0;
 
         if (Objects.equals(outputFormat, "wmv")) {
             outputFormat = "asf";
         }
 
+        Path tempFilePath = Path.of("temp", "converted." + outputFormat);
+
+        FFprobeResult result = FFprobe.atPath(ffprobeExecutable.getParent())
+                .setShowStreams(true)
+                .setInput(inputStream)
+                .execute();
+
+        for (Stream stream : result.getStreams()) {
+            if (stream.getDuration() != null && stream.getDuration() > durationSeconds) {
+                durationSeconds = stream.getDuration(); // longest stream duration
+            }
+
+            if (stream.getBitRate() != null && stream.getBitRate() > bitrateKbps) {
+                bitrateKbps = stream.getBitRate() / 1000; // convert to kbps
+            }
+        }
+
+        long estimatedSizeBytes = getEstimatedSize(estimatedSize, bitrateKbps, durationSeconds);
+
+        Output output = SmartOutputStrategy.chooseOutput(outputFormat, outputStream, tempFilePath, estimatedSizeBytes);
+
         FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
                 .addInput(PipeInput.pumpFrom(inputStream))
-                .addOutput(PipeOutput.pumpTo(outputStream).setFormat(outputFormat));
+                .addOutput(output);
+
+        System.out.println("Duration: " + durationSeconds + " seconds");
+        System.out.println("Bitrate: " + bitrateKbps + " kbps");
 
         // Video and audio codec names.
         String videoCodec = resolveVideoCodec(outputFormat, codecs);
@@ -138,5 +169,14 @@ public class MediaConversionService {
             case "vob", "dvd", "svcd", "vcd", "mpeg" -> "mp2"; // MPEG family
             default                 -> null;
         };
+    }
+
+    private long getEstimatedSize(long tempEstimatedSize, long bitrateKbps, double durationSeconds) {
+        // fiveGB's(5GB) real value in "long" variable type, is 5_368_709_120L
+        long fiveGB = 5L * 1024 * 1024 * 1024;
+        if (tempEstimatedSize > fiveGB) {
+            tempEstimatedSize = (bitrateKbps * 1000 / 8) * (long) durationSeconds;
+        }
+        return tempEstimatedSize;
     }
 }

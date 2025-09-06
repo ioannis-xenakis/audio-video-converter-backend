@@ -31,6 +31,7 @@ public class ConversionController {
     ) {
         StreamingResponseBody responseBody = outputStream -> {
             conversionService.convertMedia(
+                    file.getSize(),
                     file.getInputStream(),
                     outputStream,
                     format,
