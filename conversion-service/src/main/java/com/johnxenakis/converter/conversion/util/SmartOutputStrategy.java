@@ -3,6 +3,8 @@ package com.johnxenakis.converter.conversion.util;
 import com.github.kokorin.jaffree.ffmpeg.ChannelOutput;
 import com.github.kokorin.jaffree.ffmpeg.Output;
 import com.github.kokorin.jaffree.ffmpeg.PipeOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.nio.channels.SeekableByteChannel;
@@ -13,6 +15,7 @@ import java.util.List;
 
 public class SmartOutputStrategy {
     private static final List<String> FORMATS_REQUIRING_SEEK = List.of("wmv", "asf", "mkv", "matroska");
+    private static final Logger logger = LoggerFactory.getLogger(SmartOutputStrategy.class);
 
     public static Output chooseOutput(
             String format,
@@ -30,13 +33,13 @@ public class SmartOutputStrategy {
                         StandardOpenOption.WRITE,
                         StandardOpenOption.TRUNCATE_EXISTING);
 
-                System.out.println("Returning output with ChannelOutput");
+                logger.info("Returning output with ChannelOutput");
                 return ChannelOutput.toChannel(null, channel).setFormat(format);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to create ChannelOutput", e);
             }
         } else {
-            System.out.println("Returning output with PipeOutput");
+            logger.info("Returning output with PipeOutput");
             return PipeOutput.pumpTo(stream).setFormat(format);
         }
     }
