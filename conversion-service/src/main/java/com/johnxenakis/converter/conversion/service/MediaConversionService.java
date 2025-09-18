@@ -8,6 +8,8 @@ import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
 import com.johnxenakis.converter.conversion.config.FFmpegConfig;
 import com.johnxenakis.converter.conversion.util.SmartOutputStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import java.util.Objects;
 public class MediaConversionService {
     @Autowired
     private FFmpegConfig ffmpegConfig;
+    private static final Logger logger = LoggerFactory.getLogger(MediaConversionService.class);
 
     public void convertMedia(long estimatedSize, InputStream inputStream, OutputStream outputStream, String outputFormat,
                              Map<String, String> codecs, Map<String, String> arguments) {
@@ -58,8 +61,8 @@ public class MediaConversionService {
                 .addInput(PipeInput.pumpFrom(inputStream))
                 .addOutput(output);
 
-        System.out.println("Duration: " + durationSeconds + " seconds");
-        System.out.println("Bitrate: " + bitrateKbps + " kbps");
+        logger.info("Duration: {} seconds", durationSeconds);
+        logger.info("Bitrate: {} kbps", bitrateKbps);
 
         // Video and audio codec names.
         String videoCodec = resolveVideoCodec(outputFormat, codecs);
