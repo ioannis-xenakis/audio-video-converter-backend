@@ -53,6 +53,7 @@ public class ConversionController {
             if (SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(format)) {
                 try (InputStream resultStream = Files.newInputStream(tempFilePath)) {
                     resultStream.transferTo(outputStream);
+                    outputStream.flush();
                 }
                 Files.deleteIfExists(tempFilePath); // Clean the temp file
             }
