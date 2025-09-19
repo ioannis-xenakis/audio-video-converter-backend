@@ -6,6 +6,7 @@ import com.github.kokorin.jaffree.ffmpeg.PipeInput;
 import com.github.kokorin.jaffree.ffprobe.FFprobe;
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
+import com.johnxenakis.converter.conversion.config.ConvertConfig;
 import com.johnxenakis.converter.conversion.config.FFmpegConfig;
 import com.johnxenakis.converter.conversion.util.SmartOutputStrategy;
 import org.slf4j.Logger;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -23,24 +26,29 @@ import java.util.Objects;
 public class MediaConversionService {
     @Autowired
     private FFmpegConfig ffmpegConfig;
+    @Autowired
+    private ConvertConfig convertConfig;
     private static final Logger logger = LoggerFactory.getLogger(MediaConversionService.class);
 
     public void convertMedia(long estimatedSize, InputStream inputStream, OutputStream outputStream, String outputFormat,
-                             Map<String, String> codecs, Map<String, String> arguments) {
+                             Map<String, String> codecs, Map<String, String> arguments) throws IOException {
         Path ffmpegExecutable = ffmpegConfig.getFFmpegPath().resolve("ffmpeg.exe");
         Path ffprobeExecutable = ffmpegConfig.getFFmpegPath().resolve("ffprobe.exe");
         double durationSeconds = 0;
         long bitrateKbps = 0;
+        byte[] mediaBytes = inputStream.readAllBytes();
+        InputStream probeStream = new ByteArrayInputStream(mediaBytes);
+        InputStream ffmpegStream = new ByteArrayInputStream(mediaBytes);
 
         if (Objects.equals(outputFormat, "wmv")) {
             outputFormat = "asf";
         }
 
-        Path tempFilePath = Path.of("temp", "converted." + outputFormat);
+        Path tempFilePath = convertConfig.getConvertTempPath().resolve("converted." + outputFormat);
 
         FFprobeResult result = FFprobe.atPath(ffprobeExecutable.getParent())
                 .setShowStreams(true)
-                .setInput(inputStream)
+                .setInput(probeStream)
                 .execute();
 
         for (Stream stream : result.getStreams()) {
@@ -58,7 +66,7 @@ public class MediaConversionService {
         Output output = SmartOutputStrategy.chooseOutput(outputFormat, outputStream, tempFilePath, estimatedSizeBytes);
 
         FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
-                .addInput(PipeInput.pumpFrom(inputStream))
+                .addInput(PipeInput.pumpFrom(ffmpegStream))
                 .addOutput(output);
 
         logger.info("Duration: {} seconds", durationSeconds);
