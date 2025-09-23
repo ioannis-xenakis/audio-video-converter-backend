@@ -1,5 +1,12 @@
 package com.johnxenakis.converter.upload.service;
 
+import com.google.cloud.WriteChannel;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.transfermanager.TransferManager;
+import com.google.cloud.storage.transfermanager.TransferManagerConfig;
+import com.google.cloud.storage.transfermanager.UploadResult;
 import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
 import org.slf4j.Logger;
@@ -8,16 +15,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @Service
 public class FileStorageService {
     private final UploadProperties properties;
+    private final Storage storage;
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
-    public FileStorageService(UploadProperties properties) {
+    public FileStorageService(UploadProperties properties, Storage storage) {
         this.properties = properties;
+        this.storage = storage;
     }
 
     public String store(MultipartFile file) {
@@ -38,17 +48,29 @@ public class FileStorageService {
         }
 
         try {
-            Path uploadPath = Paths.get(properties.getDir());
-            Files.createDirectories(uploadPath);
-
             String fileId = UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
-            Path path = uploadPath.resolve(fileId);
+            BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
 
-            file.transferTo(path.toFile());
+            try (WriteChannel writer = storage.writer(blobInfo)) {
+                InputStream inputStream = file.getInputStream();
+                long totalBytesLoaded = 0;
+                long fileSize = file.getSize(); // Total file size in bytes
+
+                byte[] buffer = new byte[10 * 1024 * 1024]; // 10MB buffer
+                int limit;
+                while ((limit = inputStream.read(buffer)) >= 0) {
+                    writer.write(ByteBuffer.wrap(buffer, 0, limit));
+                    totalBytesLoaded += limit;
+
+                    double progress = (double) totalBytesLoaded / fileSize * 100;
+                    logger.info("Uploading {}: {} bytes uploaded ({})%", fileName, totalBytesLoaded, String.format("%.2f", progress));
+                }
+            }
 
             return fileId;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file", e);
+            throw new RuntimeException("Failed to store file in Google Cloud Storage", e);
         }
     }
 
