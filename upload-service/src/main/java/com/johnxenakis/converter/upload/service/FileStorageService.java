@@ -1,5 +1,8 @@
 package com.johnxenakis.converter.upload.service;
 
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
 import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
 import org.slf4j.Logger;
@@ -14,10 +17,12 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
     private final UploadProperties properties;
+    private final Storage storage;
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
-    public FileStorageService(UploadProperties properties) {
+    public FileStorageService(UploadProperties properties, Storage storage) {
         this.properties = properties;
+        this.storage = storage;
     }
 
     public String store(MultipartFile file) {
@@ -42,13 +47,14 @@ public class FileStorageService {
             Files.createDirectories(uploadPath);
 
             String fileId = UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
-            Path path = uploadPath.resolve(fileId);
+            BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
 
-            file.transferTo(path.toFile());
+            storage.create(blobInfo, file.getBytes());
 
             return fileId;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file", e);
+            throw new RuntimeException("Failed to store file in Google Cloud Storage", e);
         }
     }
 
