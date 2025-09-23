@@ -12,6 +12,7 @@ public class UploadProperties {
     private String dir;
     private List<String> allowedExtensions;
     private List<String> allowedMimetypes;
+    private String bucketName;
 
     public String getDir() { return dir; }
     public void setDir(String dir) { this.dir = dir; }
@@ -28,6 +29,13 @@ public class UploadProperties {
     }
     public void setAllowedMimetypes(List<String> allowedMimetypes) {
         this.allowedMimetypes = allowedMimetypes;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
     }
 
     @PostConstruct
