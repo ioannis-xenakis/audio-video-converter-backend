@@ -43,9 +43,6 @@ public class FileStorageService {
         }
 
         try {
-            Path uploadPath = Paths.get(properties.getDir());
-            Files.createDirectories(uploadPath);
-
             String fileId = UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
             BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
