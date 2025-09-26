@@ -1,8 +1,12 @@
 package com.johnxenakis.converter.upload.service;
 
+import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.transfermanager.TransferManager;
+import com.google.cloud.storage.transfermanager.TransferManagerConfig;
+import com.google.cloud.storage.transfermanager.UploadResult;
 import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
 import org.slf4j.Logger;
@@ -11,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @Service
@@ -46,7 +52,15 @@ public class FileStorageService {
             BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
 
-            storage.create(blobInfo, file.getBytes());
+            try (WriteChannel writer = storage.writer(blobInfo)) {
+                InputStream inputStream = file.getInputStream();
+
+                byte[] buffer = new byte[10 * 1024 * 1024]; // 10MB buffer
+                int limit;
+                while ((limit = inputStream.read(buffer)) >= 0) {
+                    writer.write(ByteBuffer.wrap(buffer, 0, limit));
+                }
+            }
 
             return fileId;
         } catch (IOException e) {
