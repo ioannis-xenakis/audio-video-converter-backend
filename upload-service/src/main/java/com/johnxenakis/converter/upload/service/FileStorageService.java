@@ -54,11 +54,17 @@ public class FileStorageService {
 
             try (WriteChannel writer = storage.writer(blobInfo)) {
                 InputStream inputStream = file.getInputStream();
+                long totalBytesLoaded = 0;
+                long fileSize = file.getSize(); // Total file size in bytes
 
                 byte[] buffer = new byte[10 * 1024 * 1024]; // 10MB buffer
                 int limit;
                 while ((limit = inputStream.read(buffer)) >= 0) {
                     writer.write(ByteBuffer.wrap(buffer, 0, limit));
+                    totalBytesLoaded += limit;
+
+                    double progress = (double) totalBytesLoaded / fileSize * 100;
+                    logger.info("Uploading {}: {} bytes uploaded ({})%", fileName, totalBytesLoaded, String.format("%.2f", progress));
                 }
             }
 
