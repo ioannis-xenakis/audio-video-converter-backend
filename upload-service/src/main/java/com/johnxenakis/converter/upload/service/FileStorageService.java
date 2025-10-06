@@ -52,8 +52,8 @@ public class FileStorageService {
             BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
 
-            try (WriteChannel writer = storage.writer(blobInfo)) {
-                InputStream inputStream = file.getInputStream();
+            try (InputStream inputStream = file.getInputStream();
+                 WriteChannel writer = storage.writer(blobInfo)) {
                 long totalBytesLoaded = 0;
                 long fileSize = file.getSize(); // Total file size in bytes
 
