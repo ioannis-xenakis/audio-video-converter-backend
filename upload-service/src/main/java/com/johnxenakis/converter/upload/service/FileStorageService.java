@@ -57,7 +57,19 @@ public class FileStorageService {
                 long totalBytesLoaded = 0;
                 long fileSize = file.getSize(); // Total file size in bytes
 
-                byte[] buffer = new byte[10 * 1024 * 1024]; // 10MB buffer
+                int chunkSize;
+                if (fileSize > 5L * 1024 * 1024 * 1024) { // >5GB
+                    chunkSize = 128 * 1024 * 1024;
+                } else if (fileSize > 2L * 1024 * 1024 * 1024) {
+                    chunkSize = 64 * 1024 * 1024;
+                } else if (fileSize > 500L * 1024 * 1024) {
+                    chunkSize = 32 * 1024 * 1024;
+                } else if (fileSize > 100L * 1024 * 1024) {
+                    chunkSize = 16 * 1024 * 1024;
+                } else {
+                    chunkSize = 8 * 1024 * 1024;
+                }
+                byte[] buffer = new byte[chunkSize];
                 int limit;
                 while ((limit = inputStream.read(buffer)) >= 0) {
                     writer.write(ByteBuffer.wrap(buffer, 0, limit));
