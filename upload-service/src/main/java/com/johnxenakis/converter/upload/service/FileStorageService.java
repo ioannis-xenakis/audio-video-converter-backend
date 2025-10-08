@@ -6,8 +6,10 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
+import com.johnxenakis.converter.upload.websocket.UploadProgressHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +23,8 @@ public class FileStorageService {
     private final UploadProperties properties;
     private final Storage storage;
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
+    @Autowired
+    private UploadProgressHandler progressHandler;
 
     public FileStorageService(UploadProperties properties, Storage storage) {
         this.properties = properties;
@@ -62,6 +66,7 @@ public class FileStorageService {
 
                     double progress = (double) totalBytesLoaded / fileSize * 100;
                     logger.info("Uploading {}: {} bytes uploaded ({})%", fileName, totalBytesLoaded, String.format("%.2f", progress));
+                    progressHandler.broadcastProgress(fileName, progress, totalBytesLoaded);
                 }
             }
 
