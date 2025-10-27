@@ -12,6 +12,7 @@ public class UploadProperties {
     private List<String> allowedExtensions;
     private List<String> allowedMimetypes;
     private String bucketName;
+    private boolean allowOverwrite = false;
 
     public List<String> getAllowedExtensions() {
         return allowedExtensions;
@@ -32,6 +33,13 @@ public class UploadProperties {
     }
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    public boolean isAllowOverwrite() {
+        return allowOverwrite;
+    }
+    public void setAllowOverwrite(boolean allowOverwrite) {
+        this.allowOverwrite = allowOverwrite;
     }
 
     @PostConstruct

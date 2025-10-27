@@ -40,29 +40,29 @@ public class FileStorageService {
     }
 
     public String storeInternal(MultipartFile file, String fileIdOverride) {
-        String fileName = file.getOriginalFilename();
-        String ext = getExtension(fileName).toLowerCase();
+        String originalFilename = file.getOriginalFilename();
+        String ext = getExtension(originalFilename).toLowerCase();
         String mimeType = file.getContentType();
 
         // Validate extension
         if(!properties.getAllowedExtensions().contains(ext)) {
-            logger.warn("Rejected file: {} with unsupported extension: {} ", fileName, ext);
-            throw new FileValidationException(fileName, "Unsupported file extension: " + ext);
+            logger.warn("Rejected file: {} with unsupported extension: {} ", originalFilename, ext);
+            throw new FileValidationException(originalFilename, "Unsupported file extension: " + ext);
         }
 
         // Validate MIME type
         if(!properties.getAllowedMimetypes().contains(mimeType)) {
-            logger.warn("Rejected file: {} with unsupported MIME type: {} ", fileName, mimeType);
-            throw new FileValidationException(fileName, "Unsupported MIME type: " + mimeType);
+            logger.warn("Rejected file: {} with unsupported MIME type: {} ", originalFilename, mimeType);
+            throw new FileValidationException(originalFilename, "Unsupported MIME type: " + mimeType);
         }
 
         try {
-            String fileId = fileIdOverride != null ? fileIdOverride : UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
-            BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
+            String blobName = fileIdOverride != null ? fileIdOverride : resolveBlobNameWithVersioning(originalFilename);
+            BlobId blobId = BlobId.of(properties.getBucketName(), blobName);
 
-            if (storage.get(blobId) != null) {
-                logger.warn("File already exists in bucket: {}", fileId);
-                throw new FileValidationException(fileName, "File already exists in storage: " + fileId);
+            if (!properties.isAllowOverwrite() && storage.get(blobId) != null) {
+                logger.warn("File {} already exists in bucket {}", blobName, properties.getBucketName());
+                throw new FileValidationException(originalFilename, "File " + blobName + "already exists in storage");
             }
 
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
@@ -79,12 +79,12 @@ public class FileStorageService {
                     totalBytesLoaded += limit;
 
                     double progress = (double) totalBytesLoaded / fileSize * 100;
-                    logger.info("Uploading {}: {} bytes uploaded ({})%", fileName, totalBytesLoaded, String.format("%.2f", progress));
-                    progressHandler.broadcastProgress(fileName, progress, totalBytesLoaded);
+                    logger.info("Uploading {}: {} bytes uploaded ({})%", originalFilename, totalBytesLoaded, String.format("%.2f", progress));
+                    progressHandler.broadcastProgress(originalFilename, progress, totalBytesLoaded);
                 }
             }
 
-            return fileId;
+            return blobName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file in Google Cloud Storage", e);
         }
@@ -110,5 +110,24 @@ public class FileStorageService {
         return fileName.contains(".")
                 ? fileName.substring(fileName.lastIndexOf('.') + 1)
                 : "";
+    }
+
+    private String resolveBlobNameWithVersioning(String originalName) {
+        String ext = getExtension(originalName);
+        String baseName = originalName.contains(".")
+                ? originalName.substring(0, originalName.lastIndexOf('.'))
+                : originalName;
+
+        String blobName = originalName;
+        BlobId blobId = BlobId.of(properties.getBucketName(), blobName);
+        int version = 1;
+
+        while (storage.get(blobId) != null) {
+            version++;
+            blobName = baseName + "_v" + version + (ext.isEmpty() ? "" : "." + ext);
+            blobId = BlobId.of(properties.getBucketName(), blobName);
+        }
+
+        return blobName;
     }
 }

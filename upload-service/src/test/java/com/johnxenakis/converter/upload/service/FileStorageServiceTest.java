@@ -62,4 +62,34 @@ public class FileStorageServiceTest {
             fileStorageService.storeWithFixedId(mockFile, fixedId);
         });
     }
+
+    @Test
+    public void testVersioningWhenFileAlreadyExists() throws Exception {
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file", "versioned-video.mp4", "video/mp4", "dummy video content".getBytes()
+        );
+
+        String firstBlobName = fileStorageService.store(mockFile);
+        assertEquals("versioned-video.mp4", firstBlobName);
+
+        String secondBlobName = fileStorageService.store(mockFile);
+        assertTrue(secondBlobName.startsWith("versioned-video_v"));
+        assertTrue(secondBlobName.endsWith(".mp4"));
+        assertNotEquals(firstBlobName, secondBlobName);
+
+        System.out.println("First blob: " + firstBlobName);
+        System.out.println("Second blob: " + secondBlobName);
+    }
+
+    @Test
+    public void testOverwriteBlockedWhenFlagIsFalse() throws Exception {
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file", "overwrite-test.mp4", "video/mp4", "dummy video content".getBytes()
+        );
+
+        String blobName = fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4");
+        assertEquals("overwrite-test.mp4", blobName);
+
+        assertThrows(FileValidationException.class, () -> fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4"));
+    }
 }
