@@ -32,6 +32,14 @@ public class FileStorageService {
     }
 
     public String store(MultipartFile file) {
+        return storeInternal(file, null); // default behavior
+    }
+
+    public String storeWithFixedId(MultipartFile file, String fileIdOverride) {
+        return storeInternal(file, fileIdOverride); // used only in tests
+    }
+
+    public String storeInternal(MultipartFile file, String fileIdOverride) {
         String fileName = file.getOriginalFilename();
         String ext = getExtension(fileName).toLowerCase();
         String mimeType = file.getContentType();
@@ -49,8 +57,14 @@ public class FileStorageService {
         }
 
         try {
-            String fileId = UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
+            String fileId = fileIdOverride != null ? fileIdOverride : UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
             BlobId blobId = BlobId.of(properties.getBucketName(), fileId);
+
+            if (storage.get(blobId) != null) {
+                logger.warn("File already exists in bucket: {}", fileId);
+                throw new FileValidationException(fileName, "File already exists in storage: " + fileId);
+            }
+
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
 
             try (InputStream inputStream = file.getInputStream();

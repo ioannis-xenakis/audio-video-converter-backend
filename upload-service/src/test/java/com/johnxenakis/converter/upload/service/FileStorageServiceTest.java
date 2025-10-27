@@ -1,5 +1,6 @@
 package com.johnxenakis.converter.upload.service;
 
+import com.johnxenakis.converter.upload.exception.FileValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -7,8 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,5 +39,27 @@ public class FileStorageServiceTest {
         assertTrue(fileId.endsWith(".mp4"));
 
         System.out.println("Uploaded file ID: " + fileId);
+    }
+
+    @Test
+    public void testPreventOverwriteWithFixedID() throws Exception {
+        // Create a mock MP4 file
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test-video.mp4",
+                "video/mp4",
+                "dummy video content".getBytes()
+        );
+
+        String fixedId = "test-fixed-id.mp4";
+
+        // First upload should succeed
+        String fileId1 = fileStorageService.storeWithFixedId(mockFile, fixedId);
+        assertNotNull(fileId1);
+
+        // Second upload with same ID should fail
+        assertThrows(FileValidationException.class, () -> {
+            fileStorageService.storeWithFixedId(mockFile, fixedId);
+        });
     }
 }
