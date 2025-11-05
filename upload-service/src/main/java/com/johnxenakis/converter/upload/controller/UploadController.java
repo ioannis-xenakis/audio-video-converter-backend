@@ -1,6 +1,7 @@
 package com.johnxenakis.converter.upload.controller;
 
 import com.johnxenakis.converter.upload.exception.FileValidationException;
+import com.johnxenakis.converter.upload.exception.UploadFailureException;
 import com.johnxenakis.converter.upload.service.FileStorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,10 +32,14 @@ public class UploadController {
         try {
             response.put("uploaded", storageService.store(file));
             response.put("timestamp", timestamp);
-        } catch (FileValidationException e) {
+        } catch (FileValidationException | UploadFailureException e) {
             Map<String, Object> failedDetails = new HashMap<>();
-            failedDetails.put("fileName", e.getFileName());
-            failedDetails.put("reason", e.getReason());
+            failedDetails.put("fileName", e instanceof FileValidationException
+                    ? ((FileValidationException) e).getFileName()
+                    : ((UploadFailureException) e).getFileName());
+            failedDetails.put("reason", e instanceof FileValidationException
+                    ? ((FileValidationException) e).getReason()
+                    : ((UploadFailureException) e).getReason());
             response.put("failed", failedDetails);
             response.put("timestamp", timestamp);
         }
@@ -50,10 +55,14 @@ public class UploadController {
         for (MultipartFile file : files) {
             try {
                 uploadedFileIds.add(storageService.store(file));
-            } catch (FileValidationException e) {
+            } catch (FileValidationException | UploadFailureException e) {
                 Map<String, String> errorDetails = new HashMap<>();
-                errorDetails.put("file", e.getFileName());
-                errorDetails.put("error", e.getReason());
+                errorDetails.put("file", e instanceof FileValidationException
+                        ? ((FileValidationException) e).getFileName()
+                        : ((UploadFailureException) e).getFileName());
+                errorDetails.put("error", e instanceof FileValidationException
+                        ? ((FileValidationException) e).getReason()
+                        : ((UploadFailureException) e).getReason());
                 failedFiles.add(errorDetails);
             }
         }

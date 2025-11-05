@@ -1,25 +1,55 @@
-package com.johnxenakis.converter.upload.service;
+package com.johnxenakis.converter.upload.service.integration;
 
+
+import com.google.cloud.storage.Storage;
+import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
+import com.johnxenakis.converter.upload.service.FileStorageService;
+import com.johnxenakis.converter.upload.websocket.UploadProgressHandler;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-        "upload.bucketName=audio-video-converter-files",
+        "upload.bucketName=audio-video-converter-test-files",
         "upload.allowedExtensions=mp4",
         "upload.allowedMimetypes=video/mp4"
 })
-public class FileStorageServiceTest {
+public class FileStorageServiceIntegrationTest {
+    @Mock
+    private Storage storage;
+
+    @Mock
+    private UploadProgressHandler progressHandler;
+
+    @Mock
+    private UploadProperties properties;
+
     @Autowired
     private FileStorageService fileStorageService;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        when(properties.getBucketName()).thenReturn("audio-video-converter-files");
+        when(properties.getAllowedExtensions()).thenReturn(java.util.List.of("mp4"));
+        when(properties.getAllowedMimetypes()).thenReturn(java.util.List.of("video/mp4"));
+        when(properties.isAllowOverwrite()).thenReturn(false);
+    }
 
     @Test
     public void testUploadToGCS() throws Exception {
@@ -91,5 +121,21 @@ public class FileStorageServiceTest {
         assertEquals("overwrite-test.mp4", blobName);
 
         assertThrows(FileValidationException.class, () -> fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4"));
+    }
+
+    @Test
+    void testBroadcastFailureSendsMessage() throws Exception {
+        WebSocketSession session = mock(WebSocketSession.class);
+        when(session.isOpen()).thenReturn(true);
+
+        UploadProgressHandler handler = new UploadProgressHandler();
+        handler.afterConnectionEstablished(session);
+
+        handler.broadcastFailure("video.mp4", "Upload failed");
+
+        verify(session).sendMessage(argThat(message ->
+                message instanceof TextMessage &&
+                        ((TextMessage) message).getPayload().contains("Upload failed")
+        ));
     }
 }

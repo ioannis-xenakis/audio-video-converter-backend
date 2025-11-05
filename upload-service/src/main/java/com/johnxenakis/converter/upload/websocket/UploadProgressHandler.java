@@ -49,4 +49,23 @@ public class UploadProgressHandler extends TextWebSocketHandler {
             }
         }
     }
+
+    public void broadcastFailure(String fileName, String reason) {
+        String message = "Upload failed for " + fileName + ": " + reason;
+        for (WebSocketSession session : sessions) {
+            if (session.isOpen()) {
+                try {
+                    session.sendMessage(new TextMessage(message));
+                } catch (IOException e) {
+                    logger.warn("Failed to send failure update to WebSocket client: {}", e.getMessage());
+                    try {
+                        session.close();
+                    } catch (IOException closeEx) {
+                        logger.error("Failed to close broken WebSocket session(broadcast failure): {}", closeEx.getMessage());
+                    }
+                    sessions.remove(session);
+                }
+            }
+        }
+    }
 }
