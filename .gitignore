@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Kafka volume data folder ###
+/data/kafka/
+
+### Docker volume data folder ###
+/data/docker_volumes/
