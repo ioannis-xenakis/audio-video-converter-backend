@@ -62,7 +62,7 @@ public class FileStorageServiceRetryTest {
         when(storage.get(any(BlobId.class))).thenReturn(null);
         when(storage.writer(any(BlobInfo.class))).thenReturn(mockChannel);
 
-        assertThrows(UploadFailureException.class, () -> fileStorageService.store(file));
+        assertThrows(UploadFailureException.class, () -> fileStorageService.store(file, null));
         verify(progressHandler).broadcastFailure(
                 eq("video.mp4"),
                 argThat((String msg) -> msg.contains("Upload failed after multiple"))

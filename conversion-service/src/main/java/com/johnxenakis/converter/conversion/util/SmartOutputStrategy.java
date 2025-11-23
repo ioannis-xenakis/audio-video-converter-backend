@@ -14,7 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class SmartOutputStrategy {
-    public static final List<String> FORMATS_REQUIRING_SEEK = List.of("wmv", "asf", "mkv", "matroska");
+    public static final List<String> FORMATS_REQUIRING_SEEK = List.of("wmv", "asf", "mkv", "matroska", "mp4", "mp3", "wav");
     private static final Logger logger = LoggerFactory.getLogger(SmartOutputStrategy.class);
 
     public static Output chooseOutput(

@@ -62,7 +62,7 @@ public class FileStorageServiceIntegrationTest {
         );
 
         // Attempt to store the file
-        String fileId = fileStorageService.store(mockFile);
+        String fileId = fileStorageService.store(mockFile, null);
 
         // Assert that a file ID is returned
         assertNotNull(fileId);
@@ -84,12 +84,12 @@ public class FileStorageServiceIntegrationTest {
         String fixedId = "test-fixed-id.mp4";
 
         // First upload should succeed
-        String fileId1 = fileStorageService.storeWithFixedId(mockFile, fixedId);
+        String fileId1 = fileStorageService.storeWithFixedId(mockFile, fixedId, null);
         assertNotNull(fileId1);
 
         // Second upload with same ID should fail
         assertThrows(FileValidationException.class, () -> {
-            fileStorageService.storeWithFixedId(mockFile, fixedId);
+            fileStorageService.storeWithFixedId(mockFile, fixedId, null);
         });
     }
 
@@ -99,10 +99,10 @@ public class FileStorageServiceIntegrationTest {
                 "file", "versioned-video.mp4", "video/mp4", "dummy video content".getBytes()
         );
 
-        String firstBlobName = fileStorageService.store(mockFile);
+        String firstBlobName = fileStorageService.store(mockFile, null);
         assertEquals("versioned-video.mp4", firstBlobName);
 
-        String secondBlobName = fileStorageService.store(mockFile);
+        String secondBlobName = fileStorageService.store(mockFile, null);
         assertTrue(secondBlobName.startsWith("versioned-video_v"));
         assertTrue(secondBlobName.endsWith(".mp4"));
         assertNotEquals(firstBlobName, secondBlobName);
@@ -117,10 +117,10 @@ public class FileStorageServiceIntegrationTest {
                 "file", "overwrite-test.mp4", "video/mp4", "dummy video content".getBytes()
         );
 
-        String blobName = fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4");
+        String blobName = fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4", null);
         assertEquals("overwrite-test.mp4", blobName);
 
-        assertThrows(FileValidationException.class, () -> fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4"));
+        assertThrows(FileValidationException.class, () -> fileStorageService.storeWithFixedId(mockFile, "overwrite-test.mp4", null));
     }
 
     @Test

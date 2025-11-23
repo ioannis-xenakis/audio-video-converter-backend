@@ -17,6 +17,7 @@
 	<modules>
 		<module>upload-service</module>
 		<module>conversion-service</module>
+		<module>shared-dto</module>
 	</modules>
 	<url/>
 	<licenses>

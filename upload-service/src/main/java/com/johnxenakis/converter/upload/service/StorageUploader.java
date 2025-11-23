@@ -37,7 +37,7 @@ public class StorageUploader {
             long totalBytesLoaded = 0;
             long fileSize = file.getSize(); // Total file size in bytes
 
-            byte[] buffer = getBuffer(fileSize);
+            byte[] buffer = new byte[64 * 1024];
             int limit;
             while ((limit = inputStream.read(buffer)) >= 0) {
                 writer.write(ByteBuffer.wrap(buffer, 0, limit));
@@ -69,7 +69,7 @@ public class StorageUploader {
         } else if (fileSize > 100L * 1024 * 1024) {
             chunkSize = 16 * 1024 * 1024;
         } else {
-            chunkSize = 8 * 1024 * 1024;
+            chunkSize = 64 * 1024;
         }
         return new byte[chunkSize];
     }

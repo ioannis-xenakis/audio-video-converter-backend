@@ -3,12 +3,14 @@ package com.johnxenakis.converter.upload.service;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
+import com.johnxenakis.converter.dto.JobPayload;
 import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
 import com.johnxenakis.converter.upload.exception.UploadFailureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +23,9 @@ public class FileStorageService {
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
     @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Autowired
     private StorageUploader uploader;
 
     public FileStorageService(UploadProperties properties, Storage storage) {
@@ -28,15 +33,15 @@ public class FileStorageService {
         this.storage = storage;
     }
 
-    public String store(MultipartFile file) {
-        return storeInternal(file, null); // default behavior
+    public String store(MultipartFile file, String outputFormat) {
+        return storeInternal(file, null, outputFormat); // default behavior
     }
 
-    public String storeWithFixedId(MultipartFile file, String fileIdOverride) {
-        return storeInternal(file, fileIdOverride); // used only in tests
+    public String storeWithFixedId(MultipartFile file, String fileIdOverride, String outputFormat) {
+        return storeInternal(file, fileIdOverride, outputFormat); // used only in tests
     }
 
-    public String storeInternal(MultipartFile file, String fileIdOverride) {
+    public String storeInternal(MultipartFile file, String fileIdOverride, String outputFormat) {
         String originalFilename = file.getOriginalFilename();
         String ext = getExtension(originalFilename).toLowerCase();
         String mimeType = file.getContentType();
@@ -65,6 +70,14 @@ public class FileStorageService {
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
 
             uploader.uploadToStorage(file, blobInfo, storage);
+
+            // Publish kafka event
+            if (outputFormat != null) {
+                logger.info("blobName: {}, mimeType: {}, outputFormat: {}", blobName, mimeType, outputFormat);
+                JobPayload job = new JobPayload(blobName, mimeType, outputFormat);
+                kafkaTemplate.send("conversion-jobs", blobName, job);
+                logger.info("Published conversion job for {}", blobName);
+            }
 
             return blobName;
         } catch (IOException e) {

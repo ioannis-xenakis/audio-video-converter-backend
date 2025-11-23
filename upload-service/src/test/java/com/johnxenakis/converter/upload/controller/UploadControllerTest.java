@@ -31,9 +31,12 @@ public class UploadControllerTest {
     void testUploadControllerHandlesUploadFailureException() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "video.mp4", "video/mp4", new byte[1024]);
 
-        when(storageService.store(file)).thenThrow(new UploadFailureException("video.mp4", "Upload failed"));
+        when(storageService.store(file, "matroska")).thenThrow(new UploadFailureException("video.mp4", "Upload failed"));
 
-        MvcResult result = mockMvc.perform(multipart("/upload").file(file))
+        MvcResult result = mockMvc.perform(
+                multipart("/upload")
+                        .file(file)
+                        .param("outputFormat", "matroska"))
                 .andExpect(status().isOk())
                 .andReturn();
 

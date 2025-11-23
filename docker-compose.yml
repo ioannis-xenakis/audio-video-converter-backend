@@ -13,5 +13,6 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
-      - ./data/kafka:/var/lib/kafka/data   # maps to local folder
-      - ./data/docker_volumes:/var/lib/docker/volumes
+      - kafka-data:/var/lib/kafka/data
+volumes:
+  kafka-data:

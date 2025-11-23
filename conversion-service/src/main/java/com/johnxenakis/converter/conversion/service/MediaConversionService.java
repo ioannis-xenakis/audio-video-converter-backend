@@ -3,6 +3,7 @@ package com.johnxenakis.converter.conversion.service;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.Output;
 import com.github.kokorin.jaffree.ffmpeg.PipeInput;
+import com.github.kokorin.jaffree.ffmpeg.PipeOutput;
 import com.github.kokorin.jaffree.ffprobe.FFprobe;
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
@@ -18,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -28,17 +30,22 @@ public class MediaConversionService {
     private FFmpegConfig ffmpegConfig;
     @Autowired
     private ConvertConfig convertConfig;
+    @Autowired
+    private GcsHelper gcsHelper;
     private static final Logger logger = LoggerFactory.getLogger(MediaConversionService.class);
 
-    public void convertMedia(long estimatedSize, InputStream inputStream, OutputStream outputStream, String outputFormat,
+    public void convertMedia(long estimatedSize, String inputBucket, String outputBucket,
+                             String blobName, String mimeType, String outputFormat,
                              Map<String, String> codecs, Map<String, String> arguments) throws IOException {
         Path ffmpegExecutable = ffmpegConfig.getFFmpegPath().resolve("ffmpeg.exe");
         Path ffprobeExecutable = ffmpegConfig.getFFmpegPath().resolve("ffprobe.exe");
         double durationSeconds = 0;
         long bitrateKbps = 0;
-        byte[] mediaBytes = inputStream.readAllBytes();
-        InputStream probeStream = new ByteArrayInputStream(mediaBytes);
-        InputStream ffmpegStream = new ByteArrayInputStream(mediaBytes);
+        InputStream probeStream = gcsHelper.fetchFromGCS(inputBucket, blobName);
+        InputStream ffmpegStream = gcsHelper.fetchFromGCS(inputBucket, blobName);
+        if (ffmpegStream == null) {
+            throw new IllegalArgumentException("InputStream ffmpegStream not found");
+        }
 
         if (Objects.equals(outputFormat, "wmv")) {
             outputFormat = "asf";
@@ -63,7 +70,12 @@ public class MediaConversionService {
 
         long estimatedSizeBytes = getEstimatedSize(estimatedSize, bitrateKbps, durationSeconds);
 
-        Output output = SmartOutputStrategy.chooseOutput(outputFormat, outputStream, tempFilePath, estimatedSizeBytes);
+        //Prepare GCS output
+        String convertedBlobName = blobName + "_converted." + outputFormat;
+        OutputStream gcsOutputStream = gcsHelper.prepareOutputStream(outputBucket,
+                convertedBlobName, mimeType);
+
+        Output output = SmartOutputStrategy.chooseOutput(outputFormat, gcsOutputStream, tempFilePath, estimatedSizeBytes);
 
         FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
                 .addInput(PipeInput.pumpFrom(ffmpegStream))
@@ -89,6 +101,25 @@ public class MediaConversionService {
         }
 
         ffmpeg.execute();
+
+        gcsOutputStream.flush();
+        gcsOutputStream.close();
+        // If SmartOutputStrategy used ChannelOutput, stream the temp file
+        if (SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase())) {
+            long size = Files.size(tempFilePath);
+            logger.info("Temp file size after FFmpeg: {} bytes", size);
+
+            try (InputStream resultStream = Files.newInputStream(tempFilePath)) {
+                OutputStream gcsOutputStream2 = gcsHelper.prepareOutputStream(outputBucket, convertedBlobName, mimeType);
+                resultStream.transferTo(gcsOutputStream2);
+                gcsOutputStream2.flush();
+                gcsOutputStream2.close();
+            }
+            Files.deleteIfExists(tempFilePath); // Clean the temp file
+        } else {
+            // We used PipeOutput → FFmpeg already wrote to gcsOutputStream
+            logger.info("Conversion via PipeOutput completed, no temp file used");
+        }
     }
 
     private String resolveVideoCodec(String format, Map<String, String> codecs) {

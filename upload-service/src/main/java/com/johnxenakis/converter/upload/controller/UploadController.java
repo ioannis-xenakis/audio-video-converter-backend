@@ -25,12 +25,14 @@ public class UploadController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file){
+    public ResponseEntity<Map<String, Object>> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("outputFormat") String outputFormat){
         Map<String, Object> response = new HashMap<>();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         try {
-            response.put("uploaded", storageService.store(file));
+            response.put("uploaded", storageService.store(file, outputFormat));
             response.put("timestamp", timestamp);
         } catch (FileValidationException | UploadFailureException e) {
             Map<String, Object> failedDetails = new HashMap<>();
@@ -47,14 +49,16 @@ public class UploadController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<Map<String, Object>> uploadMultipleFiles(@RequestParam("files") List<MultipartFile> files) {
+    public ResponseEntity<Map<String, Object>> uploadMultipleFiles(
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam("outputFormat") String outputFormat) {
         List<String> uploadedFileIds = new ArrayList<>();
         List<Map<String, String>> failedFiles = new ArrayList<>();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         for (MultipartFile file : files) {
             try {
-                uploadedFileIds.add(storageService.store(file));
+                uploadedFileIds.add(storageService.store(file, outputFormat));
             } catch (FileValidationException | UploadFailureException e) {
                 Map<String, String> errorDetails = new HashMap<>();
                 errorDetails.put("file", e instanceof FileValidationException
