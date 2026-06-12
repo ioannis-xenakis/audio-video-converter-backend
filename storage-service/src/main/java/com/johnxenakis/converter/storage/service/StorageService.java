@@ -1,8 +1,16 @@
 package com.johnxenakis.converter.storage.service;
 
-import org.springframework.stereotype.Service;
+import com.johnxenakis.converter.storage.model.ResourceWithMeta;
+import com.johnxenakis.converter.storage.model.StoredFile;
+import org.springframework.web.multipart.MultipartFile;
 
-@Service
-public class StorageService {
+import java.io.IOException;
 
+public interface StorageService {
+
+    StoredFile store(MultipartFile file, String ownerId, String tags) throws IOException;
+
+    ResourceWithMeta load(String id);
+
+    void delete(String id);
 }
