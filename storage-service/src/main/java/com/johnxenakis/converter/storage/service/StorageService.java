@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public interface StorageService {
 
-    StoredFile store(MultipartFile file, String ownerId, String tags) throws IOException;
+    StoredFile store(MultipartFile file, String type, String ownerId, String tags) throws IOException;
 
     ResourceWithMeta load(String id);
 

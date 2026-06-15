@@ -22,8 +22,14 @@ public class GcsStorageService implements StorageService {
     private final Storage storage;
     private final StoredFileRepository repository;
 
-    @Value("${storage.bucket-name}")
-    private String bucketName;
+    @Value("${storage.bucket.original}")
+    private String originalBucket;
+
+    @Value("${storage.bucket.converted}")
+    private String convertedBucket;
+
+    @Value("${storage.bucket.test}")
+    private String testBucket;
 
     @Value("${storage.base-path}")
     private String basePath;
@@ -34,12 +40,13 @@ public class GcsStorageService implements StorageService {
     }
 
     @Override
-    public StoredFile store(MultipartFile file, String ownerId, String tags) throws IOException {
+    public StoredFile store(MultipartFile file, String type, String ownerId, String tags) throws IOException {
+        String bucket = resolveBucket(type);
         String id = UUID.randomUUID().toString();
         String extension = getExtension(file.getOriginalFilename());
         String objectName = buildObjectName(id, extension);
 
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName)
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucket, objectName)
                 .setContentType(file.getContentType())
                 .build();
 
@@ -47,7 +54,7 @@ public class GcsStorageService implements StorageService {
 
         StoredFile stored = new StoredFile();
         stored.setId(id);
-        stored.setBucket(bucketName);
+        stored.setBucket(bucket);
         stored.setObjectName(objectName);
         stored.setContentType(blob.getContentType());
         stored.setSize(blob.getSize());
@@ -81,6 +88,15 @@ public class GcsStorageService implements StorageService {
 
         storage.delete(meta.getBucket(), meta.getObjectName());
         repository.delete(meta);
+    }
+
+    private String resolveBucket(String type) {
+        return switch (type.toLowerCase()) {
+            case "original" -> originalBucket;
+            case "converted" -> convertedBucket;
+            case "test" -> testBucket;
+            default -> throw new IllegalArgumentException("Unknown file type: " + type);
+        };
     }
 
     private String buildObjectName(String id, String extension) {

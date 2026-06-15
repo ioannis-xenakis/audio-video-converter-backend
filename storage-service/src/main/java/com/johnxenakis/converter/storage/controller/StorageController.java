@@ -24,10 +24,11 @@ public class StorageController {
     @PostMapping
     public ResponseEntity<StoredFile> upload(
             @RequestPart("file") MultipartFile file,
+            @RequestParam("type") String type,
             @RequestParam(value = "ownerId", required = false) String ownerId,
             @RequestParam(value = "tags", required = false) String tags
     ) throws IOException {
-        StoredFile stored = storageService.store(file, ownerId, tags);
+        StoredFile stored = storageService.store(file, type, ownerId, tags);
         return ResponseEntity.status(HttpStatus.CREATED).body(stored);
     }
 
