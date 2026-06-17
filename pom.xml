@@ -20,6 +20,7 @@
 		<module>shared-dto</module>
 		<module>download-service</module>
         <module>storage-service</module>
+		<module>api-gateway-service</module>
     </modules>
 	<url/>
 	<licenses>
