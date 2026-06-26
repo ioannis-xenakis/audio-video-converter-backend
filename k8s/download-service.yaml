@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: download-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: download-service
+  template:
+    metadata:
+      labels:
+        app: download-service
+    spec:
+      containers:
+        - name: download-service
+          image: your-docker-registry/download-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: download-service
+spec:
+  type: ClusterIP
+  selector:
+    app: download-service
+  ports:
+    - port: 8082
+      targetPort: 8082

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conversion-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conversion-service
+  template:
+    metadata:
+      labels:
+        app: conversion-service
+    spec:
+      containers:
+        - name: conversion-service
+          image: your-docker-registry/conversion-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # add any env vars you need (DB, GCS, etc.)
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conversion-service
+spec:
+  type: ClusterIP
+  selector:
+    app: conversion-service
+  ports:
+    - port: 8080
+      targetPort: 8080

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-service
+  template:
+    metadata:
+      labels:
+        app: storage-service
+    spec:
+      containers:
+        - name: storage-service
+          image: your-docker-registry/storage-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            # add GCS credentials, bucket names, etc. via env or secrets
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-service
+spec:
+  type: ClusterIP
+  selector:
+    app: storage-service
+  ports:
+    - port: 8083
+      targetPort: 8083
