@@ -42,7 +42,7 @@ public class ConversionJobListener {
         String mimeTypeResult = MimeTypeUtil.resolveMimeType(job.getOutputFormat(), null);
         job.setMimeType(mimeTypeResult);
 
-        String blobName = job.getBlobName();
+        String fileId = job.getFileId();
         String mimeType = job.getMimeType();
         String outputFormat = job.getOutputFormat();
 
@@ -51,15 +51,15 @@ public class ConversionJobListener {
                     0L, // estimated size placeholder
                     gcsConfig.getInputBucket(),
                     gcsConfig.getOutputBucket(),
-                    blobName,
+                    fileId,
                     mimeType,
                     outputFormat,
                     null, // codecs
                     null  // extra args
             );
-            logger.info("Conversion completed for {}", blobName);
+            logger.info("Conversion completed for {}", fileId);
         } catch (Exception e) {
-            logger.error("Conversion failed for " + blobName + ": " + e.getMessage());
+            logger.error("Conversion failed for " + fileId + ": " + e.getMessage());
         }
     }
 }

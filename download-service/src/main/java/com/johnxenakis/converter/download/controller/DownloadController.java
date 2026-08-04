@@ -22,7 +22,7 @@ public class DownloadController {
     @PostMapping
     public ResponseEntity<InputStreamResource> download(@RequestBody JobPayload payload) {
         return downloadService.download(
-                payload.getBlobName(),
+                payload.getFileId(),
                 payload.getMimeType(),
                 payload.getOutputFormat()
         );

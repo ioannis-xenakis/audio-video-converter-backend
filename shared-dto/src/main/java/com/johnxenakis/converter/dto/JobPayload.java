@@ -1,25 +1,25 @@
 package com.johnxenakis.converter.dto;
 
 public class JobPayload {
-    private String blobName;
+    private String fileId;
     private String mimeType;
     private String outputFormat;
 
     // Default constructor (needed by Jackson)
     public JobPayload() {}
 
-    public JobPayload(String blobName, String mimeType, String outputFormat) {
-        this.blobName = blobName;
+    public JobPayload(String fileId, String mimeType, String outputFormat) {
+        this.fileId = fileId;
         this.mimeType = mimeType;
         this.outputFormat = outputFormat;
     }
 
-    public String getBlobName() {
-        return blobName;
+    public String getFileId() {
+        return fileId;
     }
 
-    public void setBlobName(String blobName) {
-        this.blobName = blobName;
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
     }
 
     public String getMimeType() {
@@ -41,7 +41,7 @@ public class JobPayload {
     @Override
     public String toString() {
         return "JobPayload:{" +
-                "blobName='" + blobName + '\'' +
+                "fileId='" + fileId + '\'' +
                 ", mimeType='" + mimeType + '\'' +
                 ", outputFormat='" + outputFormat + '\'' +
                 '}';

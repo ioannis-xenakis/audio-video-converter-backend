@@ -7,30 +7,30 @@ import com.johnxenakis.converter.dto.JobPayload;
 import com.johnxenakis.converter.upload.config.UploadProperties;
 import com.johnxenakis.converter.upload.exception.FileValidationException;
 import com.johnxenakis.converter.upload.exception.UploadFailureException;
+import com.johnxenakis.converter.upload.model.StoredFileResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
 
 @Service
 public class FileStorageService {
+    @Autowired
+    private StorageServiceClient storageClient;
+
     private final UploadProperties properties;
-    private final Storage storage;
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Autowired
-    private StorageUploader uploader;
-
-    public FileStorageService(UploadProperties properties, Storage storage) {
+    public FileStorageService(UploadProperties properties) {
         this.properties = properties;
-        this.storage = storage;
     }
 
     public String store(MultipartFile file, String outputFormat) {
@@ -46,6 +46,40 @@ public class FileStorageService {
         String ext = getExtension(originalFilename).toLowerCase();
         String mimeType = file.getContentType();
 
+        // Validate extension and MIME type
+        validate(ext, mimeType, originalFilename);
+
+        try {
+            // Upload to Storage Service
+            StoredFileResponse stored = storageClient.upload(file, "original");
+
+            logger.info("Uploaded file {} to Storage Service with ID {}", originalFilename, stored.getId());
+
+            // Publish Kafka conversion job
+            if (outputFormat != null) {
+                logger.info("originalFilename: {}, mimeType: {}, outputFormat: {}", originalFilename, mimeType, outputFormat);
+                JobPayload job = new JobPayload(
+                        stored.getId(),
+                        stored.getContentType(),
+                        outputFormat
+                );
+
+                kafkaTemplate.send("conversion-jobs", stored.getId(), job);
+                logger.info("Published conversion job for {}", stored.getId());
+            }
+
+            return stored.getId();
+
+        } catch (WebClientResponseException.Conflict e) {
+            // Storage Service says: file already exists
+            throw new FileValidationException(originalFilename, "File already exists");
+        } catch (Exception e) {
+            logger.error("Upload failed for {}: {}", originalFilename, e.getMessage());
+            throw new UploadFailureException(originalFilename, "Upload failed via Storage Service");
+        }
+    }
+
+    private void validate(String ext, String mimeType, String originalFilename) {
         // Validate extension
         if(!properties.getAllowedExtensions().contains(ext)) {
             logger.warn("Rejected file: {} with unsupported extension: {} ", originalFilename, ext);
@@ -57,56 +91,11 @@ public class FileStorageService {
             logger.warn("Rejected file: {} with unsupported MIME type: {} ", originalFilename, mimeType);
             throw new FileValidationException(originalFilename, "Unsupported MIME type: " + mimeType);
         }
-
-        try {
-            String blobName = fileIdOverride != null ? fileIdOverride : resolveBlobNameWithVersioning(originalFilename);
-            BlobId blobId = BlobId.of(properties.getBucketName(), blobName);
-
-            if (!properties.isAllowOverwrite() && storage.get(blobId) != null) {
-                logger.warn("File {} already exists in bucket {}", blobName, properties.getBucketName());
-                throw new FileValidationException(originalFilename, "File " + blobName + "already exists in storage");
-            }
-
-            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType).build();
-
-            uploader.uploadToStorage(file, blobInfo, storage);
-
-            // Publish kafka event
-            if (outputFormat != null) {
-                logger.info("blobName: {}, mimeType: {}, outputFormat: {}", blobName, mimeType, outputFormat);
-                JobPayload job = new JobPayload(blobName, mimeType, outputFormat);
-                kafkaTemplate.send("conversion-jobs", blobName, job);
-                logger.info("Published conversion job for {}", blobName);
-            }
-
-            return blobName;
-        } catch (IOException e) {
-            throw new UploadFailureException(originalFilename, "Upload failed");
-        }
     }
 
     private String getExtension(String fileName) {
         return fileName.contains(".")
                 ? fileName.substring(fileName.lastIndexOf('.') + 1)
                 : "";
-    }
-
-    private String resolveBlobNameWithVersioning(String originalName) {
-        String ext = getExtension(originalName);
-        String baseName = originalName.contains(".")
-                ? originalName.substring(0, originalName.lastIndexOf('.'))
-                : originalName;
-
-        String blobName = originalName;
-        BlobId blobId = BlobId.of(properties.getBucketName(), blobName);
-        int version = 1;
-
-        while (storage.get(blobId) != null) {
-            version++;
-            blobName = baseName + "_v" + version + (ext.isEmpty() ? "" : "." + ext);
-            blobId = BlobId.of(properties.getBucketName(), blobName);
-        }
-
-        return blobName;
     }
 }

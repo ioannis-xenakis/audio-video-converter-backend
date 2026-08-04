@@ -71,7 +71,7 @@ public class ConversionJobListenerIntegrationTest {
     void testKafkaMessageTriggersConversion() throws Exception {
         // Arrange
         JobPayload job = new JobPayload();
-        job.setBlobName("test-video.mp4");
+        job.setFileId("test-video.mp4");
         job.setOutputFormat("mp4");
 
         String json = objectMapper.writeValueAsString(job);

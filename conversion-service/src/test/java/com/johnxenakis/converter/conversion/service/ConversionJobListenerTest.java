@@ -35,7 +35,7 @@ class ConversionJobListenerTest {
     @Test
     void testSuccessfulConversion() throws Exception {
         JobPayload job = new JobPayload();
-        job.setBlobName("video.mp4");
+        job.setFileId("video.mp4");
         job.setOutputFormat("mp4");
 
         listener.listen(job);
@@ -70,7 +70,7 @@ class ConversionJobListenerTest {
     @Test
     void testConversionFailureIsHandled() throws Exception {
         JobPayload job = new JobPayload();
-        job.setBlobName("badfile.avi");
+        job.setFileId("badfile.avi");
         job.setOutputFormat("mp4");
 
         doThrow(new RuntimeException("FFmpeg failed"))
@@ -88,7 +88,7 @@ class ConversionJobListenerTest {
     @Test
     void testMimeTypeIsResolved() throws Exception {
         JobPayload job = new JobPayload();
-        job.setBlobName("clip.mov");
+        job.setFileId("clip.mov");
         job.setOutputFormat("mov");
 
         listener.listen(job);
