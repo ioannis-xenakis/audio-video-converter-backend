@@ -28,8 +28,12 @@ public class StorageController {
             @RequestParam(value = "ownerId", required = false) String ownerId,
             @RequestParam(value = "tags", required = false) String tags
     ) throws IOException {
-        StoredFile stored = storageService.store(file, type, ownerId, tags);
-        return ResponseEntity.status(HttpStatus.CREATED).body(stored);
+        try {
+            StoredFile stored = storageService.store(file, type, ownerId, tags);
+            return ResponseEntity.status(HttpStatus.CREATED).body(stored);
+        } catch (DuplicateFileException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
     }
 
     @GetMapping("/{id}")
