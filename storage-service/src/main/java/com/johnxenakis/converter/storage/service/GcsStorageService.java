@@ -3,6 +3,7 @@ package com.johnxenakis.converter.storage.service;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
+import com.johnxenakis.converter.storage.exception.DuplicateFileException;
 import com.johnxenakis.converter.storage.model.ResourceWithMeta;
 import com.johnxenakis.converter.storage.model.StoredFile;
 import com.johnxenakis.converter.storage.repository.StoredFileRepository;
@@ -46,12 +47,25 @@ public class GcsStorageService implements StorageService {
         String extension = getExtension(file.getOriginalFilename());
         String objectName = buildObjectName(id, extension);
 
+        // Check database for duplicate objectName
+        if (repository.existsByObjectName(objectName)) {
+            throw new DuplicateFileException("File already exists: " + objectName);
+        }
+
+        // Check GCS(Google Cloud Storage) for duplicate objectName
+        Blob existingBlob = storage.get(bucket, objectName);
+        if (existingBlob != null) {
+            throw new DuplicateFileException("Blob already exists in GCS: " + objectName);
+        }
+
+        // Upload to GCS
         BlobInfo blobInfo = BlobInfo.newBuilder(bucket, objectName)
                 .setContentType(file.getContentType())
                 .build();
 
         Blob blob = storage.create(blobInfo, file.getBytes());
 
+        // Save metadata in database
         StoredFile stored = new StoredFile();
         stored.setId(id);
         stored.setBucket(bucket);

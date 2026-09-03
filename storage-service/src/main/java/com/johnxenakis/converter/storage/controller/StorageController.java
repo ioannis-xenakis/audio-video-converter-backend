@@ -1,5 +1,6 @@
 package com.johnxenakis.converter.storage.controller;
 
+import com.johnxenakis.converter.storage.exception.DuplicateFileException;
 import com.johnxenakis.converter.storage.model.ResourceWithMeta;
 import com.johnxenakis.converter.storage.model.StoredFile;
 import com.johnxenakis.converter.storage.service.StorageService;
