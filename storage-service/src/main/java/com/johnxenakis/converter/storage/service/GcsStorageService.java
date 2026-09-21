@@ -41,8 +41,8 @@ public class GcsStorageService implements StorageService {
     }
 
     @Override
-    public StoredFile store(MultipartFile file, String type, String ownerId, String tags) throws IOException {
-        String bucket = resolveBucket(type);
+    public StoredFile store(MultipartFile file, String bucketType, String ownerId, String tags) throws IOException {
+        String bucket = resolveBucket(bucketType);
         String id = UUID.randomUUID().toString();
         String extension = getExtension(file.getOriginalFilename());
         String objectName = buildObjectName(id, extension);
@@ -104,12 +104,12 @@ public class GcsStorageService implements StorageService {
         repository.delete(meta);
     }
 
-    private String resolveBucket(String type) {
-        return switch (type.toLowerCase()) {
+    private String resolveBucket(String bucketType) {
+        return switch (bucketType.toLowerCase()) {
             case "original" -> originalBucket;
             case "converted" -> convertedBucket;
             case "test" -> testBucket;
-            default -> throw new IllegalArgumentException("Unknown file type: " + type);
+            default -> throw new IllegalArgumentException("Unknown given bucket type: " + bucketType);
         };
     }
 

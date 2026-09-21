@@ -25,12 +25,12 @@ public class StorageController {
     @PostMapping
     public ResponseEntity<StoredFile> upload(
             @RequestPart("file") MultipartFile file,
-            @RequestParam("type") String type,
+            @RequestParam("bucketType") String bucketType,
             @RequestParam(value = "ownerId", required = false) String ownerId,
             @RequestParam(value = "tags", required = false) String tags
     ) throws IOException {
         try {
-            StoredFile stored = storageService.store(file, type, ownerId, tags);
+            StoredFile stored = storageService.store(file, bucketType, ownerId, tags);
             return ResponseEntity.status(HttpStatus.CREATED).body(stored);
         } catch (DuplicateFileException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
