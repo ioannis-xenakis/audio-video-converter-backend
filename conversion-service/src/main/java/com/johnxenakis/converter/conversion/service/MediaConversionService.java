@@ -41,8 +41,8 @@ public class MediaConversionService {
         Path ffprobeExecutable = ffmpegConfig.getFFmpegPath().resolve("ffprobe.exe");
         double durationSeconds = 0;
         long bitrateKbps = 0;
-        InputStream probeStream = gcsHelper.fetchFromGCS(inputBucket, blobName);
-        InputStream ffmpegStream = gcsHelper.fetchFromGCS(inputBucket, blobName);
+        InputStream probeStream = storageClient.download(blobName);
+        InputStream ffmpegStream = storageClient.download(blobName);
         if (ffmpegStream == null) {
             throw new IllegalArgumentException("InputStream ffmpegStream not found");
         }
