@@ -31,7 +31,7 @@ public class MediaConversionService {
     @Autowired
     private ConvertConfig convertConfig;
     @Autowired
-    private GcsHelper gcsHelper;
+    private StorageServiceClient storageClient;
     private static final Logger logger = LoggerFactory.getLogger(MediaConversionService.class);
 
     public void convertMedia(long estimatedSize, String inputBucket, String outputBucket,
