@@ -16,18 +16,15 @@ public class ConversionJobListener {
 
     private final MediaConversionService mediaConversionService;
     private final ObjectMapper objectMapper;
-    private final GcsHelper gcsHelper;
     private final GCSConfig gcsConfig;
 
     @Autowired
     public ConversionJobListener(
             MediaConversionService mediaConversionService,
             ObjectMapper objectMapper,
-            GcsHelper gcsHelper,
             GCSConfig gcsConfig) {
         this.mediaConversionService = mediaConversionService;
         this.objectMapper = objectMapper;
-        this.gcsHelper = gcsHelper;
         this.gcsConfig = gcsConfig;
     }
 

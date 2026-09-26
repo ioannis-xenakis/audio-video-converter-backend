@@ -27,7 +27,6 @@ class ConversionJobListenerTest {
         listener = new ConversionJobListener(
                 mediaConversionService,
                 objectMapper,
-                null,
                 gcsConfig
         );
     }
