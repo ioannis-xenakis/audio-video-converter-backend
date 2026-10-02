@@ -1,5 +1,6 @@
 package com.johnxenakis.converter.conversion.service;
 
+import com.johnxenakis.converter.dto.StoredFileDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,11 +32,10 @@ public class StorageServiceClient {
         return new ByteArrayInputStream(response.getBody());
     }
 
-    // TODO Create StoredFileMeta DTO class file.
-    public StoredFileMeta getMeta(String fileId) {
+    public StoredFileDto getMeta(String fileId) {
         return restTemplate.getForObject(
                 storageServiceUrl + "/api/storage/files/" + fileId + "/meta",
-                StoredFileMeta.class
+                StoredFileDto.class
         );
     }
 }
