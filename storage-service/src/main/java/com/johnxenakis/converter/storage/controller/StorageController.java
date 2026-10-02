@@ -6,6 +6,7 @@ import com.johnxenakis.converter.storage.model.ResourceWithMeta;
 import com.johnxenakis.converter.storage.model.StoredFile;
 import com.johnxenakis.converter.storage.service.StorageService;
 import com.johnxenakis.converter.storage.util.StoredFileMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 @RestController
 @RequestMapping("/api/storage/files")
@@ -37,6 +39,27 @@ public class StorageController {
         } catch (DuplicateFileException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
+    }
+
+    @PostMapping(
+            value = "/stream",
+            consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE
+    )
+    public ResponseEntity<StoredFileDto> uploadStream(
+            HttpServletRequest request,
+            @RequestParam String fileName,
+            @RequestParam String contentType
+    ) throws IOException {
+
+        InputStream inputStream = request.getInputStream();
+
+        return ResponseEntity.ok(
+                storageService.store(
+                        inputStream,
+                        fileName,
+                        contentType
+                )
+        );
     }
 
     @GetMapping("/{id}")
