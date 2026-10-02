@@ -48,7 +48,10 @@ public class StorageController {
     public ResponseEntity<StoredFileDto> uploadStream(
             HttpServletRequest request,
             @RequestParam String fileName,
-            @RequestParam String contentType
+            @RequestParam String contentType,
+            @RequestParam String bucketType,
+            @RequestParam(value = "ownerId", required = false) String ownerId,
+            @RequestParam(value = "tags", required = false) String tags
     ) throws IOException {
 
         InputStream inputStream = request.getInputStream();
@@ -57,7 +60,10 @@ public class StorageController {
                 storageService.store(
                         inputStream,
                         fileName,
-                        contentType
+                        contentType,
+                        bucketType,
+                        ownerId,
+                        tags
                 )
         );
     }
