@@ -1,9 +1,11 @@
 package com.johnxenakis.converter.storage.controller;
 
+import com.johnxenakis.converter.dto.StoredFileDto;
 import com.johnxenakis.converter.storage.exception.DuplicateFileException;
 import com.johnxenakis.converter.storage.model.ResourceWithMeta;
 import com.johnxenakis.converter.storage.model.StoredFile;
 import com.johnxenakis.converter.storage.service.StorageService;
+import com.johnxenakis.converter.storage.util.StoredFileMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,8 +52,10 @@ public class StorageController {
     }
 
     @GetMapping("/{id}/meta")
-    public ResponseEntity<StoredFile> meta(@PathVariable String id) {
-        return ResponseEntity.ok(storageService.load(id).getMeta());
+    public ResponseEntity<StoredFileDto> meta(@PathVariable String id) {
+        StoredFile entity = storageService.load(id).getMeta();
+
+        return ResponseEntity.ok(StoredFileMapper.toDto(entity));
     }
 
     @DeleteMapping("/{id}")
