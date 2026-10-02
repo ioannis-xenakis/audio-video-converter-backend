@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -38,6 +39,62 @@ public class GcsStorageService implements StorageService {
     public GcsStorageService(Storage storage, StoredFileRepository repository) {
         this.storage = storage;
         this.repository = repository;
+    }
+
+    @Override
+    public StoredFile store(
+            InputStream inputStream,
+            String fileName,
+            String contentType,
+            String bucketType,
+            String ownerId,
+            String tags
+    ) throws IOException {
+
+        String bucket = resolveBucket(bucketType);
+
+        String id = UUID.randomUUID().toString();
+
+        String extension = getExtension(fileName);
+
+        String objectName = buildObjectName(id, extension);
+
+        if (repository.existsByObjectName(objectName)) {
+            throw new DuplicateFileException(
+                    "File already exists: " + objectName);
+        }
+
+        Blob existingBlob = storage.get(bucket, objectName);
+
+        if (existingBlob != null) {
+            throw new DuplicateFileException(
+                    "Blob already exists in GCS: " + objectName);
+        }
+
+        BlobInfo blobInfo = BlobInfo.newBuilder(
+                        bucket,
+                        objectName
+                )
+                .setContentType(contentType)
+                .build();
+
+        Blob blob = storage.createFrom(
+                blobInfo,
+                inputStream
+        );
+
+        StoredFile stored = new StoredFile();
+
+        stored.setId(id);
+        stored.setBucket(bucket);
+        stored.setObjectName(objectName);
+        stored.setContentType(blob.getContentType());
+        stored.setSize(blob.getSize());
+        stored.setCreatedAt(Instant.now());
+        stored.setOwnerId(ownerId);
+        stored.setTags(tags);
+
+        return repository.save(stored);
     }
 
     @Override
