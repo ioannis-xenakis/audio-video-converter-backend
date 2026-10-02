@@ -56,16 +56,16 @@ public class StorageController {
 
         InputStream inputStream = request.getInputStream();
 
-        return ResponseEntity.ok(
-                storageService.store(
-                        inputStream,
-                        fileName,
-                        contentType,
-                        bucketType,
-                        ownerId,
-                        tags
-                )
+        StoredFile entity = storageService.store(
+                inputStream,
+                fileName,
+                contentType,
+                bucketType,
+                ownerId,
+                tags
         );
+
+        return ResponseEntity.ok(StoredFileMapper.toDto(entity));
     }
 
     @GetMapping("/{id}")
