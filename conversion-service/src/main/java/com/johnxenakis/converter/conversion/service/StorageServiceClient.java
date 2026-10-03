@@ -2,9 +2,12 @@ package com.johnxenakis.converter.conversion.service;
 
 import com.johnxenakis.converter.dto.StoredFileDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -12,30 +15,56 @@ import java.io.InputStream;
 @Service
 public class StorageServiceClient {
 
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     // TODO Create storage-service.url in application.properties file.
     @Value("${storage-service.url}")
     private String storageServiceUrl;
 
-    public StorageServiceClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public StorageServiceClient(WebClient webClient) {
+        this.webClient = webClient;
     }
 
     public InputStream download(String fileId) {
-        ResponseEntity<byte[]> response =
-                restTemplate.getForEntity(
-                        storageServiceUrl + "/api/storage/files/" + fileId,
-                        byte[].class
-                );
+        byte[] bytes = webClient.get()
+                .uri(storageServiceUrl + "/api/storage/files/" + fileId)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .block();
 
-        return new ByteArrayInputStream(response.getBody());
+        return new ByteArrayInputStream(bytes);
     }
 
     public StoredFileDto getMeta(String fileId) {
-        return restTemplate.getForObject(
-                storageServiceUrl + "/api/storage/files/" + fileId + "/meta",
-                StoredFileDto.class
-        );
+        return webClient.get()
+                .uri(storageServiceUrl + "/api/storage/files/" + fileId + "/meta")
+                .retrieve()
+                .bodyToMono(StoredFileDto.class)
+                .block();
+    }
+
+    public void uploadStream(
+            InputStream inputStream,
+            String fileName,
+            String contentType,
+            String bucketType
+    ) {
+
+        webClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/storage/files/stream")
+                        .queryParam("fileName", fileName)
+                        .queryParam("contentType", contentType)
+                        .queryParam("bucketType", bucketType)
+                        .build())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(
+                        BodyInserters.fromResource(
+                                new InputStreamResource(inputStream)
+                        )
+                )
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
     }
 }
