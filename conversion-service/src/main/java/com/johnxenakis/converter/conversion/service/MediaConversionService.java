@@ -3,7 +3,6 @@ package com.johnxenakis.converter.conversion.service;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.Output;
 import com.github.kokorin.jaffree.ffmpeg.PipeInput;
-import com.github.kokorin.jaffree.ffmpeg.PipeOutput;
 import com.github.kokorin.jaffree.ffprobe.FFprobe;
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
@@ -15,14 +14,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class MediaConversionService {
@@ -72,10 +72,29 @@ public class MediaConversionService {
 
         //Prepare GCS output
         String convertedBlobName = blobName + "_converted." + outputFormat;
-        OutputStream gcsOutputStream = gcsHelper.prepareOutputStream(outputBucket,
-                convertedBlobName, mimeType);
 
-        Output output = SmartOutputStrategy.chooseOutput(outputFormat, gcsOutputStream, tempFilePath, estimatedSizeBytes);
+        PipedOutputStream pipedOutputStream =
+                new PipedOutputStream();
+
+        PipedInputStream pipedInputStream =
+                new PipedInputStream(
+                        pipedOutputStream,
+                        1024 * 1024
+                );
+
+        CompletableFuture<Void> uploadTask =
+                CompletableFuture.runAsync(() -> {
+
+                    storageClient.uploadStream(
+                            pipedInputStream,
+                            convertedBlobName,
+                            mimeType,
+                            "converted"
+                    );
+
+                });
+
+        Output output = SmartOutputStrategy.chooseOutput(outputFormat, pipedOutputStream, tempFilePath, estimatedSizeBytes);
 
         FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
                 .addInput(PipeInput.pumpFrom(ffmpegStream))
@@ -102,18 +121,23 @@ public class MediaConversionService {
 
         ffmpeg.execute();
 
-        gcsOutputStream.flush();
-        gcsOutputStream.close();
+        pipedOutputStream.flush();
+        pipedOutputStream.close();
+
+        uploadTask.join();
+
         // If SmartOutputStrategy used ChannelOutput, stream the temp file
         if (SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase())) {
             long size = Files.size(tempFilePath);
             logger.info("Temp file size after FFmpeg: {} bytes", size);
 
             try (InputStream resultStream = Files.newInputStream(tempFilePath)) {
-                OutputStream gcsOutputStream2 = gcsHelper.prepareOutputStream(outputBucket, convertedBlobName, mimeType);
-                resultStream.transferTo(gcsOutputStream2);
-                gcsOutputStream2.flush();
-                gcsOutputStream2.close();
+                storageClient.uploadStream(
+                        resultStream,
+                        convertedBlobName,
+                        mimeType,
+                        "converted"
+                );
             }
             Files.deleteIfExists(tempFilePath); // Clean the temp file
         } else {
