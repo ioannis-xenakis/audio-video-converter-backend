@@ -16,7 +16,6 @@ public class StorageServiceClient {
 
     private final WebClient webClient;
 
-    // TODO Create storage-service.url in application.properties file.
     @Value("${storage-service.url}")
     private String storageServiceUrl;
 
