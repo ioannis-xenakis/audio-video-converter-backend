@@ -35,14 +35,14 @@ public class MediaConversionService {
     private static final Logger logger = LoggerFactory.getLogger(MediaConversionService.class);
 
     public void convertMedia(long estimatedSize, String inputBucket, String outputBucket,
-                             String blobName, String mimeType, String outputFormat,
+                             String fileId, String mimeType, String outputFormat,
                              Map<String, String> codecs, Map<String, String> arguments) throws IOException {
         Path ffmpegExecutable = ffmpegConfig.getFFmpegPath().resolve("ffmpeg.exe");
         Path ffprobeExecutable = ffmpegConfig.getFFmpegPath().resolve("ffprobe.exe");
         double durationSeconds = 0;
         long bitrateKbps = 0;
-        InputStream probeStream = storageClient.download(blobName);
-        InputStream ffmpegStream = storageClient.download(blobName);
+        InputStream probeStream = storageClient.download(fileId);
+        InputStream ffmpegStream = storageClient.download(fileId);
         if (ffmpegStream == null) {
             throw new IllegalArgumentException("InputStream ffmpegStream not found");
         }
@@ -71,7 +71,7 @@ public class MediaConversionService {
         long estimatedSizeBytes = getEstimatedSize(estimatedSize, bitrateKbps, durationSeconds);
 
         //Prepare GCS output
-        String convertedBlobName = blobName + "_converted." + outputFormat;
+        String convertedBlobName = fileId + "_converted." + outputFormat;
 
         PipedOutputStream pipedOutputStream =
                 new PipedOutputStream();
