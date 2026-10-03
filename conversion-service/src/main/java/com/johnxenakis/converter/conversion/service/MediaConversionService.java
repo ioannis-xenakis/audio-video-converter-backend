@@ -73,76 +73,73 @@ public class MediaConversionService {
         //Prepare GCS output
         String convertedBlobName = fileId + "_converted." + outputFormat;
 
-        PipedOutputStream pipedOutputStream =
-                new PipedOutputStream();
-
-        PipedInputStream pipedInputStream =
-                new PipedInputStream(
-                        pipedOutputStream,
-                        1024 * 1024
-                );
-
-        CompletableFuture<Void> uploadTask =
-                CompletableFuture.runAsync(() -> {
-
-                    storageClient.uploadStream(
-                            pipedInputStream,
-                            convertedBlobName,
-                            mimeType,
-                            "converted"
-                    );
-
-                });
-
-        Output output = SmartOutputStrategy.chooseOutput(outputFormat, pipedOutputStream, tempFilePath, estimatedSizeBytes);
-
-        FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
-                .addInput(PipeInput.pumpFrom(ffmpegStream))
-                .addOutput(output);
-
         logger.info("Duration: {} seconds", durationSeconds);
         logger.info("Bitrate: {} kbps", bitrateKbps);
 
-        // Video and audio codec names.
-        String videoCodec = resolveVideoCodec(outputFormat, codecs);
-        String audioCodec = resolveAudioCodec(outputFormat, codecs);
+        // If format requiring seeking, or the estimated size is beyond the 1GB threshold, do stream the file,
+        // else, use the temp file path to convert.
+        boolean useTempFile = SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase()) || estimatedSizeBytes > 1_000_000_000L;
 
-        if (videoCodec != null) {
-            ffmpeg.addArguments("-c:v", videoCodec);
-        }
-        if (audioCodec != null) {
-            ffmpeg.addArguments("-c:a", audioCodec);
-        }
+        if (!useTempFile) {
 
-        // Add extra arguments.
-        if (arguments != null && !arguments.isEmpty()) {
-            arguments.forEach(ffmpeg::addArguments);
-        }
+            PipedOutputStream pipedOutputStream =
+                    new PipedOutputStream();
 
-        ffmpeg.execute();
+            PipedInputStream pipedInputStream =
+                    new PipedInputStream(
+                            pipedOutputStream,
+                            1024 * 1024
+                    );
 
-        pipedOutputStream.flush();
-        pipedOutputStream.close();
+            CompletableFuture<Void> uploadTask =
+                    CompletableFuture.runAsync(() -> {
 
-        uploadTask.join();
+                        storageClient.uploadStream(
+                                pipedInputStream,
+                                convertedBlobName,
+                                mimeType,
+                                "converted"
+                        );
 
-        // If SmartOutputStrategy used ChannelOutput, stream the temp file
-        if (SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase())) {
-            long size = Files.size(tempFilePath);
-            logger.info("Temp file size after FFmpeg: {} bytes", size);
+                    });
 
-            try (InputStream resultStream = Files.newInputStream(tempFilePath)) {
-                storageClient.uploadStream(
-                        resultStream,
-                        convertedBlobName,
-                        mimeType,
-                        "converted"
-                );
+            Output output = SmartOutputStrategy.chooseOutput(outputFormat, pipedOutputStream, tempFilePath, estimatedSizeBytes);
+
+            FFmpeg ffmpeg = FFmpeg.atPath(ffmpegExecutable.getParent())
+                    .addInput(PipeInput.pumpFrom(ffmpegStream))
+                    .addOutput(output);
+
+            // Video and audio codec names.
+            String videoCodec = resolveVideoCodec(outputFormat, codecs);
+            String audioCodec = resolveAudioCodec(outputFormat, codecs);
+
+            if (videoCodec != null) {
+                ffmpeg.addArguments("-c:v", videoCodec);
             }
-            Files.deleteIfExists(tempFilePath); // Clean the temp file
+            if (audioCodec != null) {
+                ffmpeg.addArguments("-c:a", audioCodec);
+            }
+
+            // Add extra arguments.
+            if (arguments != null && !arguments.isEmpty()) {
+                arguments.forEach(ffmpeg::addArguments);
+            }
+
+            ffmpeg.execute();
+
+            pipedOutputStream.close();
+
+            uploadTask.join();
+
+            logger.info(
+                    "Conversion via PipeOutput completed"
+            );
         } else {
-            // We used PipeOutput → FFmpeg already wrote to gcsOutputStream
-            logger.info("Conversion via PipeOutput completed, no temp file used");
+            // Converting via temp file
+
+            Files.deleteIfExists(tempFilePath); // Clean the temp file
+
+            logger.info("Conversion via temp file completed");
         }
     }
 
