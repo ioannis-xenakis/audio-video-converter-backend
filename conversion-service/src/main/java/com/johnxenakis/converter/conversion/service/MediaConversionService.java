@@ -137,6 +137,51 @@ public class MediaConversionService {
         } else {
             // Converting via temp file
 
+            Output output =
+                    SmartOutputStrategy.chooseOutput(
+                            outputFormat,
+                            null,
+                            tempFilePath,
+                            estimatedSizeBytes
+                    );
+
+            FFmpeg ffmpeg = FFmpeg.atPath(
+                            ffmpegExecutable.getParent()
+                    )
+                    .addInput(
+                            PipeInput.pumpFrom(ffmpegStream)
+                    )
+                    .addOutput(output);
+
+            // Video and audio codec names.
+            String videoCodec = resolveVideoCodec(outputFormat, codecs);
+            String audioCodec = resolveAudioCodec(outputFormat, codecs);
+
+            if (videoCodec != null) {
+                ffmpeg.addArguments("-c:v", videoCodec);
+            }
+            if (audioCodec != null) {
+                ffmpeg.addArguments("-c:a", audioCodec);
+            }
+
+            // Add extra arguments.
+            if (arguments != null && !arguments.isEmpty()) {
+                arguments.forEach(ffmpeg::addArguments);
+            }
+
+            ffmpeg.execute();
+
+            try (InputStream resultStream =
+                         Files.newInputStream(tempFilePath)) {
+
+                storageClient.uploadStream(
+                        resultStream,
+                        convertedBlobName,
+                        mimeType,
+                        "converted"
+                );
+            }
+
             Files.deleteIfExists(tempFilePath); // Clean the temp file
 
             logger.info("Conversion via temp file completed");
