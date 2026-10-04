@@ -51,7 +51,7 @@ public class MediaConversionService {
             outputFormat = "asf";
         }
 
-        Path tempFilePath = convertConfig.getConvertTempPath().resolve("converted." + outputFormat);
+        Path tempFilePath = convertConfig.getConvertTempPath().resolve(fileId + "_" + System.currentTimeMillis());
 
         FFprobeResult result = FFprobe.atPath(ffprobeExecutable.getParent())
                 .setShowStreams(true)
