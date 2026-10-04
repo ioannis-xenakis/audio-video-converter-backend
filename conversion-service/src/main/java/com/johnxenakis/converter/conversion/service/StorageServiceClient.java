@@ -50,7 +50,7 @@ public class StorageServiceClient {
 
         webClient.post()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/api/storage/files/stream")
+                        .path(storageServiceUrl + "/api/storage/files/stream")
                         .queryParam("fileName", fileName)
                         .queryParam("contentType", contentType)
                         .queryParam("bucketType", bucketType)
