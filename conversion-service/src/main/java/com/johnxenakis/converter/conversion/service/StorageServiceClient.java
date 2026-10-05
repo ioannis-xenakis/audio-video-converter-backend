@@ -51,6 +51,7 @@ public class StorageServiceClient {
             String contentType,
             String bucketType
     ) {
+        logger.info("Starting upload: {}", fileName);
 
         webClient.post()
                 .uri(
@@ -69,6 +70,7 @@ public class StorageServiceClient {
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();
+        
         logger.info("Upload finished: {}", fileName);
     }
 }
