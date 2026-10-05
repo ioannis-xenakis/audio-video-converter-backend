@@ -1,6 +1,8 @@
 package com.johnxenakis.converter.conversion.service;
 
 import com.johnxenakis.converter.dto.StoredFileDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
@@ -15,6 +17,8 @@ import java.io.InputStream;
 public class StorageServiceClient {
 
     private final WebClient webClient;
+
+    private static final Logger logger = LoggerFactory.getLogger(StorageServiceClient.class);
 
     @Value("${storage-service.url}")
     private String storageServiceUrl;
@@ -64,5 +68,6 @@ public class StorageServiceClient {
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();
+        logger.info("Upload finished: {}", fileName);
     }
 }
