@@ -53,12 +53,13 @@ public class StorageServiceClient {
     ) {
 
         webClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path(storageServiceUrl + "/api/storage/files/stream")
-                        .queryParam("fileName", fileName)
-                        .queryParam("contentType", contentType)
-                        .queryParam("bucketType", bucketType)
-                        .build())
+                .uri(
+                        storageServiceUrl
+                                + "/api/storage/files/stream"
+                                + "?fileName=" + fileName
+                                + "&contentType=" + contentType
+                                + "&bucketType=" + bucketType
+                )
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(
                         BodyInserters.fromResource(
