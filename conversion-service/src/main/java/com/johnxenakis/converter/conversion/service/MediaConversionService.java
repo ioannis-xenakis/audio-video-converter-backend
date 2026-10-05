@@ -34,7 +34,7 @@ public class MediaConversionService {
     private StorageServiceClient storageClient;
     private static final Logger logger = LoggerFactory.getLogger(MediaConversionService.class);
 
-    public void convertMedia(long estimatedSize, String inputBucket, String outputBucket,
+    public void convertMedia(long estimatedSize, String bucketType,
                              String fileId, String mimeType, String outputFormat,
                              Map<String, String> codecs, Map<String, String> arguments) throws IOException {
         Path ffmpegExecutable = ffmpegConfig.getFFmpegPath().resolve("ffmpeg.exe");
@@ -106,7 +106,7 @@ public class MediaConversionService {
                                 pipedInputStream,
                                 convertedBlobName,
                                 mimeType,
-                                "converted"
+                                bucketType
                         );
 
                     });
@@ -186,7 +186,7 @@ public class MediaConversionService {
                         resultStream,
                         convertedBlobName,
                         mimeType,
-                        "converted"
+                        bucketType
                 );
             }
 

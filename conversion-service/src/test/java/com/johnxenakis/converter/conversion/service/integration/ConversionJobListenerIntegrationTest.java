@@ -85,8 +85,7 @@ public class ConversionJobListenerIntegrationTest {
         // Assert
         verify(mediaConversionService, times(1)).convertMedia(
                 anyLong(),
-                eq(gcsConfig.getInputBucket()),
-                eq(gcsConfig.getOutputBucket()),
+                eq("converted"),
                 eq("test-video.mp4"),
                 eq("video/mp4"),
                 eq("mp4"),

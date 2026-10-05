@@ -46,8 +46,7 @@ public class ConversionJobListener {
         try {
             mediaConversionService.convertMedia(
                     0L, // estimated size placeholder
-                    gcsConfig.getInputBucket(),
-                    gcsConfig.getOutputBucket(),
+                    "converted",
                     fileId,
                     mimeType,
                     outputFormat,

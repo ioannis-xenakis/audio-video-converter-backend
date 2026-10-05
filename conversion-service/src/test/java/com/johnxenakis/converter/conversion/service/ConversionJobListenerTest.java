@@ -40,16 +40,14 @@ class ConversionJobListenerTest {
         listener.listen(job);
 
         ArgumentCaptor<Long> estSize = ArgumentCaptor.forClass(Long.class);
-        ArgumentCaptor<String> inputBucket = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> outputBucket = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> bucketType = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> blobName = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> mimeType = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> format = ArgumentCaptor.forClass(String.class);
 
         verify(mediaConversionService, times(1)).convertMedia(
                 estSize.capture(),
-                inputBucket.capture(),
-                outputBucket.capture(),
+                bucketType.capture(),
                 blobName.capture(),
                 mimeType.capture(),
                 format.capture(),
@@ -59,8 +57,7 @@ class ConversionJobListenerTest {
 
         // Assertions
         assert estSize.getValue() == 0L;
-        assert inputBucket.getValue().equals("input-bucket");
-        assert outputBucket.getValue().equals("output-bucket");
+        assert bucketType.getValue().equals("converted");
         assert blobName.getValue().equals("video.mp4");
         assert mimeType.getValue().equals("video/mp4"); // Resolved by MimeTypeUtil class
         assert format.getValue().equals("mp4");
@@ -74,13 +71,13 @@ class ConversionJobListenerTest {
 
         doThrow(new RuntimeException("FFmpeg failed"))
                 .when(mediaConversionService)
-                .convertMedia(anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(), any(), any());
+                .convertMedia(anyLong(), anyString(), anyString(), anyString(), anyString(), any(), any());
 
         listener.listen(job);
 
         // Listener should NOT rethrow the exception
         verify(mediaConversionService, times(1)).convertMedia(
-                anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(), any(), any()
+                anyLong(), anyString(), anyString(), anyString(), anyString(), any(), any()
         );
     }
 
@@ -96,7 +93,6 @@ class ConversionJobListenerTest {
 
         verify(mediaConversionService).convertMedia(
                 anyLong(),
-                anyString(),
                 anyString(),
                 anyString(),
                 mimeType.capture(),
@@ -117,7 +113,6 @@ class ConversionJobListenerTest {
         // convertMedia should still be called with nulls
         verify(mediaConversionService).convertMedia(
                 anyLong(),
-                anyString(),
                 anyString(),
                 isNull(),
                 anyString(),
