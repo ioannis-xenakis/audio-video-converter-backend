@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GCSConfig {
+    // TODO Delete GCSConfig class file together with it's usages(wherever class is used).
+
     @Value("${buckets.input-bucket}")
     private String inputBucket;
 
