@@ -12,7 +12,8 @@ public class StorageServiceClient {
     private final WebClient webClient;
 
     public StorageServiceClient(WebClient.Builder builder) {
-        this.webClient = builder.baseUrl("http://storage-service:8083/api/storage/files").build();
+        this.webClient = builder.baseUrl("http://localhost:8083/api/storage/files").build();
+        // TODO This http://storage-service:8083/api/storage/files or http://localhost:8083/api/storage/files ?
     }
 
     public StoredFileResponse upload(MultipartFile file, String type) {
