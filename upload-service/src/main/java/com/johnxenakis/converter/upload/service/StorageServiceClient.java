@@ -18,7 +18,7 @@ public class StorageServiceClient {
     public StoredFileResponse upload(MultipartFile file, String type) {
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
         bodyBuilder.part("file", file.getResource());
-        bodyBuilder.part("type", type);
+        bodyBuilder.part("bucketType", type);
 
         return webClient.post()
                 .bodyValue(bodyBuilder.build())
