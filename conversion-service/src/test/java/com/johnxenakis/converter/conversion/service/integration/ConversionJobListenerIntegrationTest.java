@@ -1,7 +1,6 @@
 package com.johnxenakis.converter.conversion.service.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.johnxenakis.converter.conversion.config.GCSConfig;
 import com.johnxenakis.converter.conversion.service.ConversionJobListener;
 import com.johnxenakis.converter.conversion.service.MediaConversionService;
 import com.johnxenakis.converter.dto.JobPayload;
@@ -38,9 +37,6 @@ public class ConversionJobListenerIntegrationTest {
 
     @Autowired
     private KafkaListenerEndpointRegistry registry;
-
-    @Autowired
-    private GCSConfig gcsConfig;
 
     @Autowired
     private ConversionJobListener listener;
