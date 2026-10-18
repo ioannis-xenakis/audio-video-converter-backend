@@ -48,7 +48,7 @@ public class ConversionJobListener {
             );
             logger.info("Conversion completed for {}", fileId);
         } catch (Exception e) {
-            logger.error("Conversion failed for " + fileId + ": " + e.getMessage());
+            logger.error("Conversion failed for {}: {}", fileId, e.getMessage());
         }
     }
 }
