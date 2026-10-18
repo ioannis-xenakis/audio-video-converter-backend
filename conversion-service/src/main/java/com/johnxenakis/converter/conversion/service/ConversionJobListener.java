@@ -24,7 +24,7 @@ public class ConversionJobListener {
             topics = "conversion-jobs",
             groupId = "conversion-service",
             containerFactory = "kafkaListenerContainerFactory")
-    public void listen(JobPayload job) throws Exception {
+    public void listen(JobPayload job) {
         logger.info("Received job: {}", job);
 
         // Automatically resolve MIME type from format
