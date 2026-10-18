@@ -1,6 +1,5 @@
 package com.johnxenakis.converter.conversion.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.johnxenakis.converter.conversion.util.MimeTypeUtil;
 import com.johnxenakis.converter.dto.JobPayload;
 import org.slf4j.Logger;
@@ -14,14 +13,11 @@ public class ConversionJobListener {
     private static final Logger logger = LoggerFactory.getLogger(ConversionJobListener.class);
 
     private final MediaConversionService mediaConversionService;
-    private final ObjectMapper objectMapper;
 
     @Autowired
     public ConversionJobListener(
-            MediaConversionService mediaConversionService,
-            ObjectMapper objectMapper) {
+            MediaConversionService mediaConversionService) {
         this.mediaConversionService = mediaConversionService;
-        this.objectMapper = objectMapper;
     }
 
     @KafkaListener(
