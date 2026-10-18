@@ -24,7 +24,7 @@ class ConversionJobListenerTest {
     void testSuccessfulConversion() throws Exception {
         JobPayload job = new JobPayload();
         job.setFileId("video.mp4");
-        job.setOutputFormat("mp4");
+        job.setOutputFormat("avi");
 
         listener.listen(job);
 
@@ -48,8 +48,8 @@ class ConversionJobListenerTest {
         assert estSize.getValue() == 0L;
         assert bucketType.getValue().equals("converted");
         assert blobName.getValue().equals("video.mp4");
-        assert mimeType.getValue().equals("video/mp4"); // Resolved by MimeTypeUtil class
-        assert format.getValue().equals("mp4");
+        assert mimeType.getValue().equals("video/x-msvideo"); // Resolved by MimeTypeUtil class
+        assert format.getValue().equals("avi");
     }
 
     @Test

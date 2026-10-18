@@ -29,6 +29,7 @@ public class ConversionJobListener {
 
         // Automatically resolve MIME type from format
         String mimeTypeResult = MimeTypeUtil.resolveMimeType(job.getOutputFormat(), null);
+        logger.info("Auto-resolved mime type by MimeTypeUtil: {}", mimeTypeResult);
         job.setMimeType(mimeTypeResult);
 
         String fileId = job.getFileId();
