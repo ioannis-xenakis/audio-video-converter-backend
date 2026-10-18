@@ -1,7 +1,6 @@
 package com.johnxenakis.converter.conversion.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.johnxenakis.converter.conversion.config.GCSConfig;
 import com.johnxenakis.converter.conversion.util.MimeTypeUtil;
 import com.johnxenakis.converter.dto.JobPayload;
 import org.slf4j.Logger;
@@ -16,16 +15,13 @@ public class ConversionJobListener {
 
     private final MediaConversionService mediaConversionService;
     private final ObjectMapper objectMapper;
-    private final GCSConfig gcsConfig;
 
     @Autowired
     public ConversionJobListener(
             MediaConversionService mediaConversionService,
-            ObjectMapper objectMapper,
-            GCSConfig gcsConfig) {
+            ObjectMapper objectMapper) {
         this.mediaConversionService = mediaConversionService;
         this.objectMapper = objectMapper;
-        this.gcsConfig = gcsConfig;
     }
 
     @KafkaListener(
