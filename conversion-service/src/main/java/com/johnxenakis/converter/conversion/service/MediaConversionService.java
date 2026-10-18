@@ -144,6 +144,9 @@ public class MediaConversionService {
             );
         } else {
             // Converting via temp file
+            logger.info(
+                    "Conversion via temp file started"
+            );
 
             Output output =
                     SmartOutputStrategy.chooseOutput(
