@@ -1,7 +1,6 @@
 package com.johnxenakis.converter.conversion.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.johnxenakis.converter.conversion.config.GCSConfig;
 import com.johnxenakis.converter.dto.JobPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,22 +11,16 @@ import static org.mockito.Mockito.*;
 class ConversionJobListenerTest {
     private MediaConversionService mediaConversionService;
     private ObjectMapper objectMapper;
-    private GCSConfig gcsConfig;
     private ConversionJobListener listener;
 
     @BeforeEach
     void setup() {
         mediaConversionService = mock(MediaConversionService.class);
         objectMapper = new ObjectMapper();
-        gcsConfig = mock(GCSConfig.class);
-
-        when(gcsConfig.getInputBucket()).thenReturn("input-bucket");
-        when(gcsConfig.getOutputBucket()).thenReturn("output-bucket");
 
         listener = new ConversionJobListener(
                 mediaConversionService,
-                objectMapper,
-                gcsConfig
+                objectMapper
         );
     }
 
