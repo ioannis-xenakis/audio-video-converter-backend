@@ -89,6 +89,7 @@ public class MediaConversionService {
         boolean useTempFile = SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase()) || estimatedSizeBytes > 1_000_000_000L;
 
         if (!useTempFile) {
+            // Converting via streaming
 
             PipedOutputStream pipedOutputStream =
                     new PipedOutputStream();
