@@ -90,6 +90,9 @@ public class MediaConversionService {
 
         if (!useTempFile) {
             // Converting via streaming
+            logger.info(
+                    "Conversion via streaming has started"
+            );
 
             PipedOutputStream pipedOutputStream =
                     new PipedOutputStream();
