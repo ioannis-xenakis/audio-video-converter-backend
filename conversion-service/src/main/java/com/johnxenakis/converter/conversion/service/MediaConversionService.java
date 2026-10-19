@@ -130,7 +130,7 @@ public class MediaConversionService {
             uploadTask.join();
 
             logger.info(
-                    "Conversion via PipeOutput completed"
+                    "Conversion via streaming completed"
             );
         } else {
             // Converting via temp file
