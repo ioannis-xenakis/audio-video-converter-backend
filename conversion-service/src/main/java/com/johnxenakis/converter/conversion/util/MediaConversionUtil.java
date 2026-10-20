@@ -136,7 +136,7 @@ public class MediaConversionUtil {
         ffmpeg.execute();
     }
 
-    public void addCodecs(FFmpeg ffmpeg, Map<String, String> codecs, String format) {
+    private void addCodecs(FFmpeg ffmpeg, Map<String, String> codecs, String format) {
         String videoCodec = resolveVideoCodec(codecs, format);
         String audioCodec = resolveAudioCodec(codecs, format);
 
