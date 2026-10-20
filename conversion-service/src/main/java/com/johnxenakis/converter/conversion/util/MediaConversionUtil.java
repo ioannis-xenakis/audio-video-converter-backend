@@ -101,7 +101,7 @@ public class MediaConversionUtil {
         Files.deleteIfExists(tempFilePath); // Clean the temp file
     }
 
-    public void convert(
+    private void convert(
             String outputFormat,
             Path tempFilePath,
             PipedOutputStream pipedOutputStream,
