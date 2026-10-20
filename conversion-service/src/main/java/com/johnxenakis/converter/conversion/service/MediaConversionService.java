@@ -94,40 +94,17 @@ public class MediaConversionService {
                     "Conversion via streaming has started"
             );
 
-            PipedOutputStream pipedOutputStream =
-                    new PipedOutputStream();
-
-            PipedInputStream pipedInputStream =
-                    new PipedInputStream(
-                            pipedOutputStream,
-                            1024 * 1024
-                    );
-
-            CompletableFuture<Void> uploadTask =
-                    CompletableFuture.runAsync(() -> {
-
-                        storageClient.uploadStream(
-                                pipedInputStream,
-                                convertedBlobName,
-                                mimeType,
-                                bucketType
-                        );
-
-                    });
-
-            mediaConversionUtil.convert(
+            mediaConversionUtil.convertViaStreaming(
+                    convertedBlobName,
+                    mimeType,
+                    bucketType,
                     outputFormat,
-                    null,
-                    pipedOutputStream,
                     estimatedSizeBytes,
                     ffmpegExecutable,
+                    storageClient,
                     ffmpegStream,
                     codecs,
                     arguments);
-
-            pipedOutputStream.close();
-
-            uploadTask.join();
 
             logger.info(
                     "Conversion via streaming completed"
@@ -138,28 +115,18 @@ public class MediaConversionService {
                     "Conversion via temp file started"
             );
 
-            mediaConversionUtil.convert(
+            mediaConversionUtil.convertViaTempFile(
                     outputFormat,
                     tempFilePath,
-                    null,
                     estimatedSizeBytes,
                     ffmpegExecutable,
                     ffmpegStream,
                     codecs,
-                    arguments);
-
-            try (InputStream resultStream =
-                         Files.newInputStream(tempFilePath)) {
-
-                storageClient.uploadStream(
-                        resultStream,
-                        convertedBlobName,
-                        mimeType,
-                        bucketType
-                );
-            }
-
-            Files.deleteIfExists(tempFilePath); // Clean the temp file
+                    arguments,
+                    storageClient,
+                    convertedBlobName,
+                    mimeType,
+                    bucketType);
 
             logger.info("Conversion via temp file completed");
         }

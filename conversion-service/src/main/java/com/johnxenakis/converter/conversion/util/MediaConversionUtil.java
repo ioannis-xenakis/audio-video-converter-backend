@@ -3,13 +3,103 @@ package com.johnxenakis.converter.conversion.util;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.Output;
 import com.github.kokorin.jaffree.ffmpeg.PipeInput;
+import com.johnxenakis.converter.conversion.service.StorageServiceClient;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class MediaConversionUtil {
+
+    public void convertViaStreaming(
+            String convertedBlobName,
+            String mimeType,
+            String bucketType,
+            String outputFormat,
+            long estimatedSizeBytes,
+            Path ffmpegExecutable,
+            StorageServiceClient storageClient,
+            InputStream ffmpegStream,
+            Map<String, String> codecs,
+            Map<String, String> arguments) throws IOException {
+
+        PipedOutputStream pipedOutputStream =
+                new PipedOutputStream();
+
+        PipedInputStream pipedInputStream =
+                new PipedInputStream(
+                        pipedOutputStream,
+                        1024 * 1024
+                );
+
+        CompletableFuture<Void> uploadTask =
+                CompletableFuture.runAsync(() -> {
+
+                    storageClient.uploadStream(
+                            pipedInputStream,
+                            convertedBlobName,
+                            mimeType,
+                            bucketType
+                    );
+
+                });
+
+        convert(
+                outputFormat,
+                null,
+                pipedOutputStream,
+                estimatedSizeBytes,
+                ffmpegExecutable,
+                ffmpegStream,
+                codecs,
+                arguments);
+
+        pipedOutputStream.close();
+
+        uploadTask.join();
+    }
+
+    public void convertViaTempFile(
+            String outputFormat,
+            Path tempFilePath,
+            long estimatedSizeBytes,
+            Path ffmpegExecutable,
+            InputStream ffmpegStream,
+            Map<String, String> codecs,
+            Map<String, String> arguments,
+            StorageServiceClient storageClient,
+            String convertedBlobName,
+            String mimeType,
+            String bucketType) throws IOException {
+
+        convert(
+                outputFormat,
+                tempFilePath,
+                null,
+                estimatedSizeBytes,
+                ffmpegExecutable,
+                ffmpegStream,
+                codecs,
+                arguments);
+
+        try (InputStream resultStream =
+                     Files.newInputStream(tempFilePath)) {
+
+            storageClient.uploadStream(
+                    resultStream,
+                    convertedBlobName,
+                    mimeType,
+                    bucketType
+            );
+        }
+
+        Files.deleteIfExists(tempFilePath); // Clean the temp file
+    }
 
     public void convert(
             String outputFormat,
