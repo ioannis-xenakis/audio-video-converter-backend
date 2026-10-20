@@ -245,4 +245,13 @@ public class MediaConversionUtil {
             arguments.forEach(ffmpeg::addArguments);
         }
     }
+
+    public long getEstimatedSize(long tempEstimatedSize, long bitrateKbps, double durationSeconds) {
+        // fiveGB's(5GB) real value in "long" variable type, is 5_368_709_120L
+        long fiveGB = 5L * 1024 * 1024 * 1024;
+        if (tempEstimatedSize > fiveGB) {
+            tempEstimatedSize = (bitrateKbps * 1000 / 8) * (long) durationSeconds;
+        }
+        return tempEstimatedSize;
+    }
 }
