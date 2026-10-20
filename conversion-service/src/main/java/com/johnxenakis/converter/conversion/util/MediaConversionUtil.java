@@ -16,12 +16,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class MediaConversionUtil {
 
+    private static long estimatedSizeBytes = 0;
+
     public void convertViaStreaming(
             String convertedBlobName,
             String mimeType,
             String bucketType,
             String outputFormat,
-            long estimatedSizeBytes,
             Path ffmpegExecutable,
             StorageServiceClient storageClient,
             InputStream ffmpegStream,
@@ -53,7 +54,6 @@ public class MediaConversionUtil {
                 outputFormat,
                 null,
                 pipedOutputStream,
-                estimatedSizeBytes,
                 ffmpegExecutable,
                 ffmpegStream,
                 codecs,
@@ -67,7 +67,6 @@ public class MediaConversionUtil {
     public void convertViaTempFile(
             String outputFormat,
             Path tempFilePath,
-            long estimatedSizeBytes,
             Path ffmpegExecutable,
             InputStream ffmpegStream,
             Map<String, String> codecs,
@@ -81,7 +80,6 @@ public class MediaConversionUtil {
                 outputFormat,
                 tempFilePath,
                 null,
-                estimatedSizeBytes,
                 ffmpegExecutable,
                 ffmpegStream,
                 codecs,
@@ -105,7 +103,6 @@ public class MediaConversionUtil {
             String outputFormat,
             Path tempFilePath,
             PipedOutputStream pipedOutputStream,
-            long estimatedSizeBytes,
             Path ffmpegExecutable,
             InputStream ffmpegStream,
             Map<String, String> codecs,
@@ -246,12 +243,18 @@ public class MediaConversionUtil {
         }
     }
 
-    public long getEstimatedSize(long tempEstimatedSize, long bitrateKbps, double durationSeconds) {
+    private long getEstimatedSize(long tempEstimatedSize, long bitrateKbps, double durationSeconds) {
         // fiveGB's(5GB) real value in "long" variable type, is 5_368_709_120L
         long fiveGB = 5L * 1024 * 1024 * 1024;
         if (tempEstimatedSize > fiveGB) {
             tempEstimatedSize = (bitrateKbps * 1000 / 8) * (long) durationSeconds;
         }
         return tempEstimatedSize;
+    }
+
+    public boolean getUseTempFile(long estimatedSize, long bitrateKbps, double durationSeconds, String outputFormat) {
+        estimatedSizeBytes = getEstimatedSize(estimatedSize, bitrateKbps, durationSeconds);
+
+        return SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase()) || estimatedSizeBytes > 1_000_000_000L;
     }
 }

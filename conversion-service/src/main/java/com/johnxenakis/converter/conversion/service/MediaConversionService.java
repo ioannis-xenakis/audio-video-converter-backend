@@ -76,8 +76,6 @@ public class MediaConversionService {
             }
         }
 
-        long estimatedSizeBytes = mediaConversionUtil.getEstimatedSize(estimatedSize, bitrateKbps, durationSeconds);
-
         //Prepare GCS output
         String convertedBlobName = fileId + "_converted." + outputFormat;
 
@@ -86,7 +84,7 @@ public class MediaConversionService {
 
         // If format requiring seeking, or the estimated size is beyond the 1GB threshold, do stream the file,
         // else, use the temp file path to convert.
-        boolean useTempFile = SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase()) || estimatedSizeBytes > 1_000_000_000L;
+        boolean useTempFile = mediaConversionUtil.getUseTempFile(estimatedSize, bitrateKbps, durationSeconds, outputFormat);
 
         if (!useTempFile) {
             // Converting via streaming
@@ -99,7 +97,6 @@ public class MediaConversionService {
                     mimeType,
                     bucketType,
                     outputFormat,
-                    estimatedSizeBytes,
                     ffmpegExecutable,
                     storageClient,
                     ffmpegStream,
@@ -118,7 +115,6 @@ public class MediaConversionService {
             mediaConversionUtil.convertViaTempFile(
                     outputFormat,
                     tempFilePath,
-                    estimatedSizeBytes,
                     ffmpegExecutable,
                     ffmpegStream,
                     codecs,
