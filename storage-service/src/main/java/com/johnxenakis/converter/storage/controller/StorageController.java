@@ -7,6 +7,7 @@ import com.johnxenakis.converter.storage.model.StoredFile;
 import com.johnxenakis.converter.storage.service.StorageService;
 import com.johnxenakis.converter.storage.util.StoredFileMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,15 +70,22 @@ public class StorageController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> download(@PathVariable String id) throws IOException {
+    public ResponseEntity<InputStreamResource> download(@PathVariable String id) {
+        
         ResourceWithMeta resource = storageService.load(id);
+
         StoredFile meta = resource.getMeta();
-        byte[] bytes = resource.getInputStream().readAllBytes();
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(meta.getContentType()))
+                .contentType(
+                        MediaType.parseMediaType(
+                                meta.getContentType()
+                        )
+                )
                 .contentLength(meta.getSize())
-                .body(bytes);
+                .body(
+                        new InputStreamResource(resource.getInputStream())
+                );
     }
 
     @GetMapping("/{id}/meta")
