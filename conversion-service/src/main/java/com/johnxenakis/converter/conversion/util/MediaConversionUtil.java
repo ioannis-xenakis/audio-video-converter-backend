@@ -17,8 +17,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class MediaConversionUtil {
 
-    private static long estimatedSizeBytes = 0;
-
     public void convertViaStreaming(
             ConversionContext context,
             StorageServiceClient storageClient
@@ -229,9 +227,10 @@ public class MediaConversionUtil {
         return tempEstimatedSize;
     }
 
-    public boolean getUseTempFile(long estimatedSize, long bitrateKbps, double durationSeconds, String outputFormat) {
-        estimatedSizeBytes = getEstimatedSize(estimatedSize, bitrateKbps, durationSeconds);
+    public boolean getUseTempFile(long estimatedSizeBytes, String outputFormat) {
 
-        return SmartOutputStrategy.FORMATS_REQUIRING_SEEK.contains(outputFormat.toLowerCase()) || estimatedSizeBytes > 1_000_000_000L;
+        return SmartOutputStrategy.FORMATS_REQUIRING_SEEK
+                .contains(outputFormat.toLowerCase())
+                || estimatedSizeBytes > 1_000_000_000L;
     }
 }

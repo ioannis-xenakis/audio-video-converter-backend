@@ -105,7 +105,7 @@ public class MediaConversionService {
 
         // If format requiring seeking, or the estimated size is beyond the 1GB threshold, do stream the file,
         // else, use the temp file path to convert.
-        boolean useTempFile = mediaConversionUtil.getUseTempFile(estimatedSize, bitrateKbps, durationSeconds, outputFormat);
+        boolean useTempFile = mediaConversionUtil.getUseTempFile(estimatedSizeBytes, outputFormat);
 
         if (!useTempFile) {
             // Converting via streaming
