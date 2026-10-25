@@ -82,6 +82,13 @@ public class MediaConversionService {
         logger.info("Duration: {} seconds", durationSeconds);
         logger.info("Bitrate: {} kbps", bitrateKbps);
 
+        long estimatedSizeBytes =
+                mediaConversionUtil.getEstimatedSize(
+                        estimatedSize,
+                        bitrateKbps,
+                        durationSeconds
+                );
+
         // If format requiring seeking, or the estimated size is beyond the 1GB threshold, do stream the file,
         // else, use the temp file path to convert.
         boolean useTempFile = mediaConversionUtil.getUseTempFile(estimatedSize, bitrateKbps, durationSeconds, outputFormat);

@@ -243,7 +243,7 @@ public class MediaConversionUtil {
         }
     }
 
-    private long getEstimatedSize(long tempEstimatedSize, long bitrateKbps, double durationSeconds) {
+    public long getEstimatedSize(long tempEstimatedSize, long bitrateKbps, double durationSeconds) {
         // fiveGB's(5GB) real value in "long" variable type, is 5_368_709_120L
         long fiveGB = 5L * 1024 * 1024 * 1024;
         if (tempEstimatedSize > fiveGB) {
