@@ -63,7 +63,7 @@ public class MediaConversionUtil {
 
         convert(
                 context,
-                tempFilepath,
+                tempFilePath,
                 null);
 
         try (InputStream resultStream =
@@ -81,35 +81,31 @@ public class MediaConversionUtil {
     }
 
     private void convert(
-            String outputFormat,
+            ConversionContext context,
             Path tempFilePath,
-            PipedOutputStream pipedOutputStream,
-            Path ffmpegExecutable,
-            InputStream ffmpegStream,
-            Map<String, String> codecs,
-            Map<String, String> arguments) {
+            PipedOutputStream pipedOutputStream) {
 
         Output output =
                 SmartOutputStrategy.chooseOutput(
-                        outputFormat,
+                        context.outputFormat(),
                         pipedOutputStream,
                         tempFilePath,
                         estimatedSizeBytes
                 );
 
         FFmpeg ffmpeg = FFmpeg.atPath(
-                        ffmpegExecutable.getParent()
+                        context.ffmpegExecutable().getParent()
                 )
                 .addInput(
-                        PipeInput.pumpFrom(ffmpegStream)
+                        PipeInput.pumpFrom(context.ffmpegStream())
                 )
                 .addOutput(output);
 
         // Video and audio codec names.
-        addCodecs(ffmpeg, codecs, outputFormat);
+        addCodecs(ffmpeg, context.codecs(), context.outputFormat());
 
         // Add extra arguments.
-        addExtraArguments(ffmpeg, arguments);
+        addExtraArguments(ffmpeg, context.arguments());
 
         ffmpeg.execute();
     }
