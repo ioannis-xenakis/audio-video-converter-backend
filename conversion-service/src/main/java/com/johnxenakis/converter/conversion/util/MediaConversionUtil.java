@@ -222,7 +222,7 @@ public class MediaConversionUtil {
         // fiveGB's(5GB) real value in "long" variable type, is 5_368_709_120L
         long fiveGB = 5L * 1024 * 1024 * 1024;
         if (tempEstimatedSize > fiveGB) {
-            tempEstimatedSize = (bitrateKbps * 1000 / 8) * (long) durationSeconds;
+            tempEstimatedSize = (long)((bitrateKbps * 1000.0 / 8.0) * durationSeconds);
         }
         return tempEstimatedSize;
     }
