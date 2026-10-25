@@ -3,6 +3,7 @@ package com.johnxenakis.converter.conversion.util;
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
 import com.github.kokorin.jaffree.ffmpeg.Output;
 import com.github.kokorin.jaffree.ffmpeg.PipeInput;
+import com.johnxenakis.converter.conversion.model.ConversionContext;
 import com.johnxenakis.converter.conversion.service.StorageServiceClient;
 
 import java.io.IOException;
@@ -19,15 +20,9 @@ public class MediaConversionUtil {
     private static long estimatedSizeBytes = 0;
 
     public void convertViaStreaming(
-            String convertedBlobName,
-            String mimeType,
-            String bucketType,
-            String outputFormat,
-            Path ffmpegExecutable,
-            StorageServiceClient storageClient,
-            InputStream ffmpegStream,
-            Map<String, String> codecs,
-            Map<String, String> arguments) throws IOException {
+            ConversionContext context,
+            StorageServiceClient storageClient
+    ) throws IOException {
 
         PipedOutputStream pipedOutputStream =
                 new PipedOutputStream();
@@ -43,9 +38,9 @@ public class MediaConversionUtil {
 
                     storageClient.uploadStream(
                             pipedInputStream,
-                            convertedBlobName,
-                            mimeType,
-                            bucketType
+                            context.convertedBlobName(),
+                            context.mimeType(),
+                            context.bucketType()
                     );
 
                 });
