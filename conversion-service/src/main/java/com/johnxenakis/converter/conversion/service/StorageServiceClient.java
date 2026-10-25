@@ -27,7 +27,7 @@ public class StorageServiceClient {
         this.webClient = webClient;
     }
 
-    public InputStream download(String fileId) {
+    public InputStream downloadStream(String fileId) {
         byte[] bytes = webClient.get()
                 .uri(storageServiceUrl + "/api/storage/files/" + fileId)
                 .retrieve()

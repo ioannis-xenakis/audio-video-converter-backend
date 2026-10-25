@@ -37,8 +37,8 @@ public class MediaConversionService {
         MediaConversionUtil mediaConversionUtil = new MediaConversionUtil();
         double durationSeconds = 0;
         long bitrateKbps = 0;
-        InputStream probeStream = storageClient.download(fileId);
-        InputStream ffmpegStream = storageClient.download(fileId);
+        InputStream probeStream = storageClient.downloadStream(fileId);
+        InputStream ffmpegStream = storageClient.downloadStream(fileId);
         if (ffmpegStream == null) {
             throw new IllegalArgumentException("InputStream ffmpegStream not found");
         }
