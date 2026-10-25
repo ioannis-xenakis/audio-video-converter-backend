@@ -114,15 +114,9 @@ public class MediaConversionService {
             );
 
             mediaConversionUtil.convertViaStreaming(
-                    convertedBlobName,
-                    mimeType,
-                    bucketType,
-                    outputFormat,
-                    ffmpegExecutable,
-                    storageClient,
-                    ffmpegStream,
-                    codecs,
-                    arguments);
+                    context,
+                    storageClient
+            );
 
             logger.info(
                     "Conversion via streaming completed"
