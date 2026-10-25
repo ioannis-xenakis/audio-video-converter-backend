@@ -5,6 +5,7 @@ import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
 import com.johnxenakis.converter.conversion.config.ConvertConfig;
 import com.johnxenakis.converter.conversion.config.FFmpegConfig;
+import com.johnxenakis.converter.conversion.model.ConversionContext;
 import com.johnxenakis.converter.conversion.util.MediaConversionUtil;
 import com.johnxenakis.converter.conversion.util.SmartOutputStrategy;
 import org.slf4j.Logger;
@@ -87,6 +88,19 @@ public class MediaConversionService {
                         estimatedSize,
                         bitrateKbps,
                         durationSeconds
+                );
+
+        ConversionContext context =
+                new ConversionContext(
+                        outputFormat,
+                        ffmpegExecutable,
+                        ffmpegStream,
+                        codecs,
+                        arguments,
+                        convertedBlobName,
+                        mimeType,
+                        bucketType,
+                        estimatedSizeBytes
                 );
 
         // If format requiring seeking, or the estimated size is beyond the 1GB threshold, do stream the file,
