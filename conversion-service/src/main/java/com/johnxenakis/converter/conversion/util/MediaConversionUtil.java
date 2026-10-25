@@ -46,13 +46,10 @@ public class MediaConversionUtil {
                 });
 
         convert(
-                outputFormat,
+                context,
                 null,
-                pipedOutputStream,
-                ffmpegExecutable,
-                ffmpegStream,
-                codecs,
-                arguments);
+                pipedOutputStream
+        );
 
         pipedOutputStream.close();
 
