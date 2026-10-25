@@ -57,16 +57,9 @@ public class MediaConversionUtil {
     }
 
     public void convertViaTempFile(
-            String outputFormat,
+            ConversionContext context,
             Path tempFilePath,
-            Path ffmpegExecutable,
-            InputStream ffmpegStream,
-            Map<String, String> codecs,
-            Map<String, String> arguments,
-            StorageServiceClient storageClient,
-            String convertedBlobName,
-            String mimeType,
-            String bucketType) throws IOException {
+            StorageServiceClient storageClient) throws IOException {
 
         convert(
                 outputFormat,
