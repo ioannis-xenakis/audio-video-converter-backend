@@ -62,13 +62,9 @@ public class MediaConversionUtil {
             StorageServiceClient storageClient) throws IOException {
 
         convert(
-                outputFormat,
-                tempFilePath,
-                null,
-                ffmpegExecutable,
-                ffmpegStream,
-                codecs,
-                arguments);
+                context,
+                tempFilepath,
+                null);
 
         try (InputStream resultStream =
                      Files.newInputStream(tempFilePath)) {
