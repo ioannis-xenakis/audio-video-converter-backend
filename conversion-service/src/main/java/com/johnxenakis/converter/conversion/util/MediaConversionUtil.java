@@ -90,7 +90,7 @@ public class MediaConversionUtil {
                         context.outputFormat(),
                         pipedOutputStream,
                         tempFilePath,
-                        estimatedSizeBytes
+                        context.estimatedSizeBytes()
                 );
 
         FFmpeg ffmpeg = FFmpeg.atPath(
