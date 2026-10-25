@@ -70,8 +70,8 @@ public class StorageController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<InputStreamResource> download(@PathVariable String id) {
-        
+    public ResponseEntity<InputStreamResource> downloadStream(@PathVariable String id) {
+
         ResourceWithMeta resource = storageService.load(id);
 
         StoredFile meta = resource.getMeta();
