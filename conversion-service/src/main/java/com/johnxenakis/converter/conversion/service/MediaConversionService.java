@@ -128,16 +128,10 @@ public class MediaConversionService {
             );
 
             mediaConversionUtil.convertViaTempFile(
-                    outputFormat,
+                    context,
                     tempFilePath,
-                    ffmpegExecutable,
-                    ffmpegStream,
-                    codecs,
-                    arguments,
-                    storageClient,
-                    convertedBlobName,
-                    mimeType,
-                    bucketType);
+                    storageClient
+            );
 
             logger.info("Conversion via temp file completed");
         }
