@@ -71,9 +71,9 @@ public class MediaConversionUtil {
 
             storageClient.uploadStream(
                     resultStream,
-                    convertedBlobName,
-                    mimeType,
-                    bucketType
+                    context.convertedBlobName(),
+                    context.mimeType(),
+                    context.bucketType()
             );
         }
 
