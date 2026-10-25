@@ -7,7 +7,6 @@ import com.johnxenakis.converter.conversion.config.ConvertConfig;
 import com.johnxenakis.converter.conversion.config.FFmpegConfig;
 import com.johnxenakis.converter.conversion.model.ConversionContext;
 import com.johnxenakis.converter.conversion.util.MediaConversionUtil;
-import com.johnxenakis.converter.conversion.util.SmartOutputStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class MediaConversionService {
