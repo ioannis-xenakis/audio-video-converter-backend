@@ -11,7 +11,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 @Service
@@ -32,15 +31,30 @@ public class StorageServiceClient {
     }
 
     public InputStream downloadStream(String fileId) {
-        return restClient.get()
-                .uri(
-                        storageServiceUrl
-                                + "/api/storage/files/"
-                                + fileId
-                )
-                .exchange((request, response) ->
-                        response.getBody()
-                );
+
+        logger.info("Starting downloading file via streaming: {}", fileId);
+
+        try {
+            InputStream stream = restClient.get()
+                    .uri(
+                            storageServiceUrl
+                                    + "/api/storage/files/"
+                                    + fileId
+                    )
+                    .exchange((request, response) ->
+                            response.getBody()
+                    );
+
+            logger.info("Completed downloading file via streaming: {}", fileId);
+
+            return stream;
+        } catch (Exception e) {
+
+            logger.error("Failed downloading file via streaming: {}  \n Reason: {}",
+                    fileId, e.getMessage());
+
+            throw e;
+        }
     }
 
     public StoredFileDto getMeta(String fileId) {
