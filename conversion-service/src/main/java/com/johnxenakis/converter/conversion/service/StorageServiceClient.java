@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -18,23 +19,28 @@ public class StorageServiceClient {
 
     private final WebClient webClient;
 
+    private final RestClient restClient;
+
     private static final Logger logger = LoggerFactory.getLogger(StorageServiceClient.class);
 
     @Value("${storage-service.url}")
     private String storageServiceUrl;
 
-    public StorageServiceClient(WebClient webClient) {
+    public StorageServiceClient(WebClient webClient, RestClient restClient) {
         this.webClient = webClient;
+        this.restClient = restClient;
     }
 
     public InputStream downloadStream(String fileId) {
-        byte[] bytes = webClient.get()
-                .uri(storageServiceUrl + "/api/storage/files/" + fileId)
-                .retrieve()
-                .bodyToMono(byte[].class)
-                .block();
-
-        return new ByteArrayInputStream(bytes);
+        return restClient.get()
+                .uri(
+                        storageServiceUrl
+                                + "/api/storage/files/"
+                                + fileId
+                )
+                .exchange((request, response) ->
+                        response.getBody()
+                );
     }
 
     public StoredFileDto getMeta(String fileId) {
